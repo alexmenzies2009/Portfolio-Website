@@ -1,0 +1,303 @@
+---
+import { getWork } from '../../lib/work';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import ContactCta from '../../components/ContactCta.astro';
+import { site } from '../../data/site';
+
+const work = await getWork();
+// Filter buttons, in this order. A project shows under a filter when its "tags" include it.
+const FILTERS = ['Branding', 'Design', 'Print', 'UI/UX', 'Animation', 'AI'];
+const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).length;
+---
+
+<Base title="Work" description={site.allWorkIntro}>
+  <PageHero eyebrow="Work" lines={['All', 'Projects']} count={work.length} />
+
+  <section class="wk wrap">
+    <div class="wk__bar">
+      <p class="wk__intro pretty" data-split data-delay="0.5">{site.allWorkIntro}</p>
+      <div class="wk__tools" data-reveal data-delay="0.6">
+        <div class="wk__filters" role="group" aria-label="Filter projects">
+          <button class="bracket" type="button" data-filter="all" aria-pressed="true">All<sup>{work.length}</sup></button>
+          {
+            FILTERS.map((f) => (
+              <button class="bracket" type="button" data-filter={f} aria-pressed="false">
+                {f}
+                <sup>{count(f)}</sup>
+              </button>
+            ))
+          }
+        </div>
+        <div class="wk__views" role="group" aria-label="Layout">
+          <button class="bracket" type="button" data-view="grid" aria-pressed="true">Grid</button>
+          <button class="bracket" type="button" data-view="list" aria-pressed="false">List</button>
+        </div>
+      </div>
+    </div>
+
+    <ul class="wk__list" data-list data-view="grid">
+      {
+        work.map((p, i) => (
+          <li class="wk__item" data-item data-tags={p.data.tags.join('|')}>
+            <ProjectCard entry={p} eager={i < 3} />
+          </li>
+        ))
+      }
+    </ul>
+    <div class="wk__peek frame" data-peek aria-hidden="true"><img alt="" /></div>
+  </section>
+
+  <ContactCta />
+</Base>
+
+<script>
+  import { gsap, ScrollTrigger, reduced, finePointer } from '../../scripts/motion';
+  import { Flip } from 'gsap/Flip';
+
+  gsap.registerPlugin(Flip);
+
+  const list = document.querySelector<HTMLElement>('[data-list]');
+  if (list) {
+    const items = [...list.querySelectorAll<HTMLElement>('[data-item]')];
+    const filterBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const viewBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-view]')].filter((b) => b.tagName === 'BUTTON');
+
+    const applyFilter = (filter: string, animate: boolean) => {
+      const state = animate && !reduced ? Flip.getState(items) : null;
+      items.forEach((item) => {
+        item.hidden = !(filter === 'all' || (item.dataset.tags || '').split('|').includes(filter));
+      });
+      filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      if (state) {
+        Flip.from(state, {
+          duration: 0.75,
+          ease: 'expo.inOut',
+          absolute: true,
+          onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'expo.out', delay: 0.15 }),
+          onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.92, duration: 0.3 }),
+          onComplete: () => ScrollTrigger.refresh(),
+        });
+      } else {
+        ScrollTrigger.refresh();
+      }
+      const url = new URL(location.href);
+      if (filter === 'all') url.searchParams.delete('filter');
+      else url.searchParams.set('filter', filter);
+      history.replaceState(null, '', url);
+    };
+
+    const applyView = (view: string) => {
+      list.dataset.view = view;
+      viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+      try {
+        sessionStorage.setItem('work:view', view);
+      } catch {}
+      if (!reduced) gsap.fromTo(list, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' });
+      ScrollTrigger.refresh();
+    };
+
+    filterBtns.forEach((b) => b.addEventListener('click', () => applyFilter(b.dataset.filter || 'all', true)));
+    viewBtns.forEach((b) => b.addEventListener('click', () => applyView(b.dataset.view || 'grid')));
+
+    // restore state from the address bar / last visit
+    const wanted = new URL(location.href).searchParams.get('filter');
+    if (wanted && filterBtns.some((b) => b.dataset.filter === wanted)) applyFilter(wanted, false);
+    try {
+      if (sessionStorage.getItem('work:view') === 'list') {
+        list.dataset.view = 'list';
+        viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === 'list')));
+      }
+    } catch {}
+
+    // list view: the hovered row's cover follows the pointer
+    const peek = document.querySelector<HTMLElement>('[data-peek]');
+    const peekImg = peek?.querySelector('img');
+    if (peek && peekImg && finePointer) {
+      const xTo = gsap.quickTo(peek, 'x', { duration: 0.55, ease: 'power3' });
+      const yTo = gsap.quickTo(peek, 'y', { duration: 0.55, ease: 'power3' });
+      list.addEventListener('pointermove', (e) => {
+        xTo(e.clientX);
+        yTo(e.clientY);
+      });
+      items.forEach((item) => {
+        item.addEventListener('pointerenter', () => {
+          if (list.dataset.view !== 'list') return;
+          const img = item.querySelector<HTMLImageElement>('img');
+          if (img) peekImg.src = img.currentSrc || img.src;
+          peek.classList.add('is-on');
+        });
+      });
+      list.addEventListener('pointerleave', () => peek.classList.remove('is-on'));
+    }
+  }
+</script>
+
+<style>
+  .wk {
+    display: grid;
+    gap: clamp(2rem, 4vw, 4rem);
+    padding-top: clamp(2rem, 4vw, 4rem);
+  }
+  .wk__bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+  }
+  .wk__intro {
+    max-width: 38ch;
+    font-size: var(--fs-lead);
+    font-weight: 500;
+    line-height: 1.16;
+    letter-spacing: -0.022em;
+  }
+  .wk__tools {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem 2rem;
+    padding-block: 1.1rem;
+    border-block: 1px solid var(--line);
+  }
+  .wk__filters,
+  .wk__views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem clamp(0.9rem, 1.8vw, 1.9rem);
+  }
+  .wk__tools :global(.bracket) {
+    color: var(--fg-2);
+    padding-block: 0.35rem;
+    transition: color 0.3s;
+  }
+  .wk__tools :global(.bracket:hover),
+  .wk__tools :global(.bracket[aria-pressed='true']) {
+    color: var(--fg);
+  }
+  .wk__tools :global(.bracket:not([aria-pressed='true']):not(:hover))::before,
+  .wk__tools :global(.bracket:not([aria-pressed='true']):not(:hover))::after {
+    opacity: 0;
+  }
+  .wk__tools sup {
+    margin-left: -0.25em;
+    font-size: 0.82em;
+    color: var(--fg-3);
+    vertical-align: 0.5em;
+    line-height: 0;
+  }
+
+  /* ----- grid view ----- */
+  .wk__list[data-view='grid'] {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(2rem, 3.6vw, 4rem) var(--gap);
+  }
+  /* a gentle stagger so the grid does not read as a spreadsheet */
+  .wk__list[data-view='grid'] .wk__item:nth-child(3n + 2) {
+    margin-top: clamp(0rem, 3.5vw, 4rem);
+  }
+
+  /* ----- list view: same cards, shown as rows ----- */
+  .wk__list[data-view='list'] {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .wk__list[data-view='list'] .wk__item {
+    border-bottom: 1px solid var(--line);
+  }
+  .wk__list[data-view='list'] :global(.card) {
+    display: block;
+    padding-block: clamp(0.9rem, 1.6vw, 1.5rem);
+    transition: padding-left 0.6s var(--ease-out);
+  }
+  .wk__list[data-view='list'] :global(.card:hover) {
+    padding-left: clamp(0.5rem, 1.4vw, 1.5rem);
+  }
+  .wk__list[data-view='list'] :global(.card__frame) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .wk__list[data-view='list'] :global(.card__meta) {
+    grid-template-columns: 3.5ch minmax(0, 1fr) minmax(0, 14rem) minmax(0, 15rem);
+    gap: clamp(0.9rem, 2vw, 2.25rem);
+  }
+  .wk__list[data-view='list'] :global(.card__cat) {
+    display: block;
+  }
+  .wk__list[data-view='list'] :global(.card__tools) {
+    text-align: right;
+  }
+  @media (max-width: 900px) {
+    .wk__list[data-view='list'] :global(.card__meta) {
+      grid-template-columns: 3.5ch minmax(0, 1fr) auto;
+    }
+    .wk__list[data-view='list'] :global(.card__tools) {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .wk__list[data-view='list'] :global(.card__meta) {
+      grid-template-columns: 3.5ch minmax(0, 1fr);
+    }
+    .wk__list[data-view='list'] :global(.card__cat) {
+      display: none;
+    }
+  }
+  .wk__list[data-view='list'] :global(.card__title) {
+    font-size: clamp(1.6rem, 1rem + 2.8vw, 3.75rem);
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+  }
+
+  .wk__peek {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 70;
+    width: clamp(14rem, 22vw, 22rem);
+    aspect-ratio: 4 / 5;
+    margin: -30% 0 0 2rem;
+    pointer-events: none;
+    opacity: 0;
+    scale: 0.8;
+    rotate: 4deg;
+    transition:
+      opacity 0.35s,
+      scale 0.6s var(--ease-out);
+  }
+  .wk__peek.is-on {
+    opacity: 1;
+    scale: 1;
+  }
+  .wk__peek img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (max-width: 1100px) {
+    .wk__list[data-view='grid'] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .wk__list[data-view='grid'] .wk__item:nth-child(3n + 2) {
+      margin-top: 0;
+    }
+    .wk__list[data-view='grid'] .wk__item:nth-child(2n) {
+      margin-top: clamp(0rem, 5vw, 3.5rem);
+    }
+  }
+  @media (max-width: 640px) {
+    .wk__list[data-view='grid'] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .wk__list[data-view='grid'] .wk__item:nth-child(2n) {
+      margin-top: 0;
+    }
+  }
+</style>

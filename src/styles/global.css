@@ -1,0 +1,765 @@
+/* ==========================================================================
+   Alex Menzies — portfolio
+   Global tokens, reset, typography and shared pieces.
+   Concept: a dark gallery. The interface is monochrome; the only colour is
+   borrowed from whichever piece of work is in focus (--accent).
+   ========================================================================== */
+
+/* Registered so the accent can animate smoothly between projects. */
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #edeae4;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* colour */
+  --bg: #09090a;
+  --surface: #121213;
+  --surface-2: #1b1b1d;
+  --fg: #edeae4;
+  --fg-2: #aaa69f;
+  --fg-3: #85827c;
+  --line: rgb(237 234 228 / 0.12);
+  --line-2: rgb(237 234 228 / 0.28);
+  --ink: #09090a;
+  --accent: #edeae4;
+  /* text placed on an accent-coloured surface, and accent used as text */
+  --on-accent: var(--ink);
+  --accent-text: var(--accent);
+
+  /* type */
+  --font-sans: 'Mona Sans Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'Martian Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --fs-mono: clamp(0.64rem, 0.2rem + 0.62vw, 0.75rem);
+  --fs-body: clamp(1rem, 0.9rem + 0.3vw, 1.2rem);
+  --fs-lead: clamp(1.3rem, 0.9rem + 1.5vw, 2.3rem);
+  --fs-h3: clamp(1.5rem, 1rem + 1.8vw, 2.75rem);
+  --fs-h2: clamp(2.2rem, 1rem + 4.8vw, 5.5rem);
+  --fs-h1: clamp(2.9rem, 0.8rem + 8.6vw, 9.5rem);
+  --fs-display: clamp(3.2rem, 0.5rem + 12vw, 14rem);
+
+  /* space */
+  --gutter: clamp(1rem, 0.4rem + 2.4vw, 2.75rem);
+  --gap: clamp(0.75rem, 0.4rem + 1vw, 1.5rem);
+  --section: clamp(5.5rem, 3rem + 11vw, 14rem);
+  --radius: clamp(10px, 6px + 0.7vw, 20px);
+  --header-h: clamp(4.25rem, 3rem + 3vw, 6rem);
+
+  /* motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+html {
+  transition: --accent 0.8s var(--ease-out);
+}
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--bg);
+  scrollbar-color: #3a3a3c var(--bg);
+}
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+img,
+picture,
+video,
+svg,
+iframe {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+ul,
+ol,
+dl,
+dd {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- smooth scroll (Lenis) ---------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ---------- atmosphere ---------- */
+/* film grain: keeps the dark surfaces from feeling flat and hides gradient banding */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* the glow the page borrows from the work in focus */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s var(--ease-out);
+  background:
+    radial-gradient(75vw 60vh at 88% -8%, color-mix(in oklab, var(--accent) 24%, transparent), transparent 70%),
+    radial-gradient(65vw 55vh at 6% 108%, color-mix(in oklab, var(--accent) 17%, transparent), transparent 70%);
+}
+html.has-glow .ambient,
+html[data-glow] .ambient {
+  opacity: 1;
+}
+
+/* ---------- layout ---------- */
+.wrap {
+  padding-inline: var(--gutter);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+}
+.section {
+  padding-block: var(--section);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.skip {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 200;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--ink);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+.skip:focus {
+  transform: none;
+}
+
+/* ---------- type ---------- */
+.display {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-stretch: calc(var(--wdth, 100) * 1%);
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+}
+/* outlined display type. The fill hides the inner half of the stroke and the overlapping
+   contours a variable font would otherwise show. */
+.outline {
+  color: var(--bg);
+  -webkit-text-stroke: 3px var(--fg);
+  paint-order: stroke fill;
+}
+/* fitted text gets its own size, so its tracking must be relative to that size (not inherited in px) */
+[data-fit-text] {
+  letter-spacing: -0.035em;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-stretch: 87.5%;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.dim {
+  color: var(--fg-2);
+}
+.lead {
+  font-size: var(--fs-lead);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.022em;
+}
+.balance {
+  text-wrap: balance;
+}
+.pretty {
+  text-wrap: pretty;
+}
+
+/* split-text masks: a little room so descenders are not cut */
+.sl-mask,
+.sw-mask,
+.sc-mask {
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+/* without JavaScript nothing sizes the fitted titles, so let them wrap instead of running off the page */
+html:not(.js) [data-fit] {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+/* content is hidden until the motion script has set its start states (never without JS) */
+html.js:not(.is-ready) [data-split],
+html.js:not(.is-ready) [data-reveal] {
+  visibility: hidden;
+}
+
+/* ---------- small parts ---------- */
+/* [ bracket link ] — carried over from the original site, now with spreading brackets */
+.bracket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-stretch: 87.5%;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.bracket::before,
+.bracket::after {
+  content: '[';
+  color: var(--fg-3);
+  transition:
+    transform 0.5s var(--ease-out),
+    color 0.3s;
+}
+.bracket::after {
+  content: ']';
+}
+.bracket:hover::before,
+.bracket:focus-visible::before,
+.bracket[aria-pressed='true']::before,
+.bracket[aria-current='page']::before {
+  transform: translateX(-0.35em);
+  color: var(--accent-text);
+}
+.bracket:hover::after,
+.bracket:focus-visible::after,
+.bracket[aria-pressed='true']::after,
+.bracket[aria-current='page']::after {
+  transform: translateX(0.35em);
+  color: var(--accent-text);
+}
+
+/* underline that wipes in */
+.ulink {
+  background: linear-gradient(currentColor, currentColor) no-repeat 100% 100% / 0% 1px;
+  transition: background-size 0.5s var(--ease-out);
+  padding-bottom: 0.12em;
+}
+.ulink:hover,
+.ulink:focus-visible {
+  background-position: 0% 100%;
+  background-size: 100% 1px;
+}
+
+/* pill button with a label that rolls over on hover */
+.pill {
+  --pill-bg: var(--fg);
+  --pill-fg: var(--ink);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 1.05em 1.5em 1.05em 1.65em;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
+  font-size: clamp(0.95rem, 0.85rem + 0.3vw, 1.125rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: background-color 0.4s var(--ease-out);
+}
+.pill--ghost {
+  --pill-bg: transparent;
+  --pill-fg: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.pill:hover,
+.pill:focus-visible {
+  --pill-bg: var(--accent);
+  --pill-fg: var(--on-accent);
+}
+.pill__label {
+  display: grid;
+  overflow: clip;
+}
+.pill__label > span {
+  grid-area: 1 / 1;
+  transition: transform 0.55s var(--ease-out);
+}
+.pill__label > span:last-child {
+  transform: translateY(110%);
+}
+.pill:hover .pill__label > span:first-child,
+.pill:focus-visible .pill__label > span:first-child {
+  transform: translateY(-110%);
+}
+.pill:hover .pill__label > span:last-child,
+.pill:focus-visible .pill__label > span:last-child {
+  transform: none;
+}
+.pill__arrow {
+  width: 0.72em;
+  height: 0.72em;
+  transition: transform 0.55s var(--ease-out);
+}
+.pill:hover .pill__arrow,
+.pill:focus-visible .pill__arrow {
+  transform: translate(0.14em, -0.14em);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55em 0.95em;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  font-stretch: 87.5%;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* live "available" dot */
+.pulse {
+  position: relative;
+  display: inline-block;
+  width: 0.62em;
+  height: 0.62em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2.2s var(--ease-out) infinite;
+}
+@keyframes pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+
+/* section heading row: "01 — About" */
+.eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9em;
+  color: var(--fg-2);
+}
+.eyebrow__num {
+  color: var(--fg);
+}
+.eyebrow__rule {
+  flex: none;
+  width: clamp(1.5rem, 3vw, 3rem);
+  height: 1px;
+  background: var(--line-2);
+  transform: translateY(-0.35em);
+}
+
+/* media frame */
+.frame {
+  position: relative;
+  overflow: clip;
+  border-radius: var(--radius);
+  background: var(--surface);
+  isolation: isolate;
+}
+.frame > img,
+.frame > video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- custom cursor (fine pointers only; the system cursor stays) ---------- */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 120;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.cursor.is-on {
+  opacity: 1;
+}
+.cursor__disc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 5.6rem;
+  height: 5.6rem;
+  margin: -2.8rem 0 0 -2.8rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: scale(0);
+  transition:
+    transform 0.5s var(--ease-out),
+    background-color 0.4s;
+}
+.cursor[data-state='label'] .cursor__disc {
+  transform: scale(1);
+}
+.cursor__label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-stretch: 87.5%;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .cursor {
+    display: none;
+  }
+}
+
+/* ---------- page-to-page transitions (cross-document view transitions) ---------- */
+@view-transition {
+  navigation: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vt-out 0.65s var(--ease-io) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 0.65s var(--ease-io) both;
+  }
+  ::view-transition-group(project-cover) {
+    animation-duration: 0.75s;
+    animation-timing-function: var(--ease-io);
+    z-index: 2;
+  }
+  ::view-transition-image-pair(project-cover) {
+    overflow: clip;
+    border-radius: var(--radius);
+  }
+  ::view-transition-old(project-cover),
+  ::view-transition-new(project-cover) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4vh) scale(0.985);
+  }
+}
+@keyframes vt-in {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.vt-cover {
+  view-transition-name: project-cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- lazy images fade in (only once the script that reveals them is running) ---------- */
+html.img-fade img[loading='lazy']:not(.is-loaded) {
+  opacity: 0;
+}
+html.img-fade img[loading='lazy'] {
+  transition: opacity 0.8s var(--ease-out);
+}
+
+/* ---------- image viewer ---------- */
+.lightbox {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--bg) 95%, transparent);
+  color: var(--fg);
+}
+.lightbox::backdrop {
+  background: transparent;
+}
+.lightbox[open] {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  animation: lb-in 0.45s var(--ease-out);
+}
+.lightbox__stage {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+  padding: clamp(1rem, 3vw, 3rem) clamp(1rem, 3vw, 3rem) 0.5rem;
+  overflow: hidden;
+  cursor: zoom-out;
+}
+.lightbox__stage img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  cursor: default;
+  transition: opacity 0.35s;
+}
+.lightbox__stage.is-tall {
+  overflow-y: auto;
+  place-items: start center;
+}
+.lightbox__stage.is-tall img {
+  max-height: none;
+  width: min(100%, 62rem);
+}
+.lightbox__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding: 1rem var(--gutter) 1.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.lightbox__close {
+  position: absolute;
+  right: var(--gutter);
+}
+.lightbox.is-single [data-prev],
+.lightbox.is-single [data-next],
+.lightbox.is-single [data-count] {
+  display: none;
+}
+@keyframes lb-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- intro (first page of a visit) ---------- */
+.loader {
+  display: none;
+}
+html.is-loading .loader {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-items: center;
+  background: var(--bg);
+  color: var(--fg);
+}
+.loader__clip {
+  overflow: clip;
+}
+.loader__mark svg {
+  width: clamp(6rem, 14vw, 12rem);
+  height: auto;
+}
+.loader__foot {
+  width: 100%;
+  padding: 0 var(--gutter) clamp(1.25rem, 3vw, 2.25rem);
+}
+.loader__row {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.loader__bar {
+  height: 1px;
+  background: var(--line);
+}
+.loader__bar i {
+  display: block;
+  height: 100%;
+  background: var(--fg);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* ==========================================================================
+   Light mode (the toggle next to the menu). Dark stays the default.
+   ========================================================================== */
+html[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f3f0ea;
+  --surface: #e9e5dd;
+  --surface-2: #dedad1;
+  --fg: #0c0c0d;
+  --fg-2: #55524d;
+  --fg-3: #6f6c66;
+  --line: rgb(12 12 13 / 0.14);
+  --line-2: rgb(12 12 13 / 0.32);
+  --ink: #f3f0ea;
+  --accent: #0c0c0d;
+  /* project accents are bright; darken them when they are used as text on paper */
+  --accent-text: color-mix(in oklab, var(--accent) 62%, #000);
+  scrollbar-color: #b9b5ad var(--bg);
+}
+html[data-theme='light'] body::after {
+  opacity: 0.07;
+  filter: invert(1);
+}
+html[data-theme='light'] .ambient {
+  background:
+    radial-gradient(75vw 60vh at 88% -8%, color-mix(in oklab, var(--accent) 34%, transparent), transparent 70%),
+    radial-gradient(65vw 55vh at 6% 108%, color-mix(in oklab, var(--accent) 26%, transparent), transparent 70%);
+}
+html[data-theme='light'] .card:hover .card__num,
+html[data-theme='light'] .nx:hover .nx__title {
+  color: color-mix(in oklab, var(--card-accent, var(--fg)) 62%, #000);
+}
+
+/* switching theme: the new palette opens as a circle from the toggle */
+html.theme-switching::view-transition-old(root) {
+  animation: none;
+}
+html.theme-switching::view-transition-new(root) {
+  animation: theme-in 0.85s var(--ease-io) both;
+}
+@keyframes theme-in {
+  from {
+    clip-path: circle(0 at var(--tx, 90%) var(--ty, 5%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--tx, 90%) var(--ty, 5%));
+  }
+}
+
+/* ---------- WebGL contour field (canvas[data-field]) ---------- */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1; /* behind its section's content; the section sets isolation: isolate */
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s var(--ease-out);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 72%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 72%, transparent);
+}
+.field.is-live {
+  opacity: 1;
+}

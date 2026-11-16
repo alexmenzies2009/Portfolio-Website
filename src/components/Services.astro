@@ -1,0 +1,81 @@
+---
+// Four giant service words. As each line scrolls into place its letters change width
+// and a picture window opens inside the line.
+import { Image } from 'astro:assets';
+import { services } from '../data/site';
+interface Props {
+  index?: string;
+}
+const { index } = Astro.props;
+---
+
+<section class="svc wrap section">
+  <p class="eyebrow mono" data-reveal>
+    {index && <span class="eyebrow__num">{index}</span>}
+    <span class="eyebrow__rule"></span>
+    <span>Services</span>
+  </p>
+  <ul class="svc__list">
+    {
+      services.map((s, i) => (
+        <li class:list={['svc__line display', i % 2 ? 'svc__line--close' : 'svc__line--open']} data-kinetic={i % 2 ? '116,84' : '84,116'}>
+          {i % 2 === 0 && (
+            <span class="svc__win" aria-hidden="true">
+              <Image src={s.image} alt="" width={520} height={260} quality={74} loading="lazy" />
+            </span>
+          )}
+          <span class="svc__word">{s.name}</span>
+          {i % 2 === 1 && (
+            <span class="svc__win" aria-hidden="true">
+              <Image src={s.image} alt="" width={520} height={260} quality={74} loading="lazy" />
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+  <slot />
+</section>
+
+<style>
+  .svc {
+    display: grid;
+    gap: clamp(1.75rem, 3.5vw, 3.5rem);
+  }
+  .svc__list {
+    display: grid;
+    justify-items: center;
+    gap: 0.02em;
+    font-size: clamp(2.2rem, 11.2vw, 15rem);
+  }
+  .svc__line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.14em;
+    white-space: nowrap;
+    line-height: 0.9;
+  }
+  .svc__line:nth-child(even) {
+    color: var(--fg-2);
+  }
+  /* the window's width is tied to the same scroll value that stretches the letters */
+  .svc__win {
+    --open: calc((var(--wdth, 100) - 84) / 32);
+    flex: none;
+    width: calc(var(--open) * 1.5em);
+    height: 0.7em;
+    overflow: clip;
+    border-radius: 999px;
+    background: var(--surface-2);
+  }
+  .svc__line--close .svc__win {
+    --open: calc((116 - var(--wdth, 100)) / 32);
+  }
+  .svc__win :global(img) {
+    width: 1.5em;
+    max-width: none;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>

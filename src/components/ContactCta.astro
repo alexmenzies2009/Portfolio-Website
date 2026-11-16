@@ -1,0 +1,94 @@
+---
+// The closing "Have a cool project?" block used at the end of most pages.
+import Arrow from './Arrow.astro';
+interface Props {
+  /** Section number shown in the eyebrow, e.g. "03". */
+  index?: string;
+}
+const { index } = Astro.props;
+---
+
+<section class="cta wrap section" data-rail={index}>
+  <canvas class="field" data-field aria-hidden="true"></canvas>
+  <p class="eyebrow mono" data-reveal>
+    {index && <span class="eyebrow__num">{index}</span>}
+    <span class="eyebrow__rule"></span>
+    <span>Contact</span>
+  </p>
+  <h2 class="cta__title display">
+    <span class="cta__line" data-kinetic="78,106">Have a cool</span>
+    <span class="cta__line cta__line--b outline" data-kinetic="106,78">project?</span>
+  </h2>
+  <a class="cta__btn" href="/contact/" data-magnetic="0.3">
+    <span class="cta__btn-in">
+      <span>Let's talk</span>
+      <Arrow class="cta__arrow" />
+    </span>
+  </a>
+</section>
+
+<style>
+  .cta {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: clamp(1.5rem, 3vw, 3rem);
+  }
+  .cta__title {
+    display: grid;
+    justify-items: center;
+    font-size: clamp(2.6rem, 11.6vw, 15rem);
+    white-space: nowrap;
+  }
+  .cta__line--b {
+    transition: color 0.6s var(--ease-out);
+  }
+  .cta:hover .cta__line--b,
+  .cta:focus-within .cta__line--b {
+    color: var(--fg);
+  }
+  .cta__btn {
+    display: grid;
+    place-items: center;
+    width: clamp(8.5rem, 6rem + 9vw, 13.5rem);
+    aspect-ratio: 1;
+    margin-top: clamp(-5rem, -6vw, -2rem);
+    border-radius: 50%;
+    background: var(--fg);
+    color: var(--ink);
+    font-weight: 650;
+    font-size: clamp(1rem, 0.8rem + 0.6vw, 1.4rem);
+    letter-spacing: -0.02em;
+    transition:
+      background-color 0.4s var(--ease-out),
+      scale 0.6s var(--ease-out);
+    rotate: -8deg;
+  }
+  .cta__btn:hover,
+  .cta__btn:focus-visible {
+    background: var(--accent);
+    color: var(--on-accent);
+    scale: 1.06;
+  }
+  .cta__btn-in {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .cta__btn :global(.cta__arrow) {
+    width: 0.7em;
+    height: 0.7em;
+    transition: transform 0.5s var(--ease-out);
+  }
+  .cta__btn:hover :global(.cta__arrow) {
+    transform: translate(0.16em, -0.16em);
+  }
+  @media (max-width: 640px) {
+    .cta__title {
+      font-size: 15vw;
+      white-space: normal;
+    }
+  }
+</style>

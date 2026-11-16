@@ -1,0 +1,23 @@
+---
+// Pill button. The label rolls over on hover and the button leans toward the pointer.
+import Arrow from './Arrow.astro';
+interface Props {
+  href: string;
+  label: string;
+  ghost?: boolean;
+  external?: boolean;
+  class?: string;
+}
+const { href, label, ghost = false, external = false, class: cls } = Astro.props;
+---
+
+<a
+  class:list={['pill', ghost && 'pill--ghost', cls]}
+  href={href}
+  data-magnetic="0.22"
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+>
+  <span class="pill__label"><span>{label}</span><span aria-hidden="true">{label}</span></span>
+  <Arrow class="pill__arrow" />
+</a>

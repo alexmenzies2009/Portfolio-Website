@@ -1,0 +1,701 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Arrow from './Arrow.astro';
+import { getWork } from '../lib/work';
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Services from '../components/Services.astro';
+import ContactCta from '../components/ContactCta.astro';
+import Pill from '../components/Pill.astro';
+import { site, about } from '../data/site';
+
+interface Props {
+  /** Test version: the hero shows a portrait built from project thumbnails. */
+  mosaic?: boolean;
+}
+const { mosaic = false } = Astro.props;
+const work = await getWork();
+const featured = work.filter((p) => p.data.featured);
+// what the preview card shows when a thumbnail in the portrait is clicked
+const peek = mosaic
+  ? Object.fromEntries(
+      await Promise.all(
+        work.map(async (p) => [
+          p.id,
+          {
+            title: p.data.title,
+            meta: `${String(p.data.number).padStart(2, '0')} — ${p.data.category}`,
+            text: p.data.tagline,
+            tools: p.data.tools.join(' · '),
+            accent: p.data.accent ?? '',
+            cover: (await getImage({ src: p.data.cover, width: 800, format: 'webp', quality: 76 })).src,
+          },
+        ]),
+      ),
+    )
+  : null;
+
+// Projects shown in the moving strip under the hero (file names from src/content/work).
+const stripSlugs = ['astroflame', 'blue2purple', 'the-joker', 'beat-invasion', 'f1', 'hairspace', 'ai', 'the-batman', 'spacecat', 'back-to-school', 'neon-rider', 'noval'];
+const strip = stripSlugs.map((slug) => work.find((p) => p.id === slug)).filter((p) => p !== undefined);
+
+const letters = site.role.toUpperCase().split('');
+const pad = (n: number) => String(n).padStart(2, '0');
+const year = new Date().getFullYear();
+---
+
+<Base title={mosaic ? undefined : 'Home, classic version'} noindex={!mosaic}>
+  <section class:list={['hero', mosaic && 'hero--mosaic']} data-wordmark-zone>
+    <h1 class="sr-only">{site.name} — graphic designer based in Brussels</h1>
+    {
+      mosaic ? (
+        <>
+          <canvas class="mosaic" data-mosaic data-map="/mosaic/map.json" data-atlas="/mosaic/atlas.webp" aria-hidden="true" />
+          <div class="mosaic-tip mono" data-mosaic-tip aria-hidden="true" />
+          <div class="peek" data-peek role="dialog" aria-label="Project preview" hidden>
+            <div class="peek__img frame" data-peek-frame>
+              <img data-peek-img alt="" />
+            </div>
+            <div class="peek__body">
+              <p class="mono dim" data-peek-meta />
+              <h2 class="peek__title" data-peek-title />
+              <p class="peek__text" data-peek-text />
+              <p class="mono dim" data-peek-tools />
+              <div class="peek__actions">
+                <a class="pill" href="/work/" data-peek-link data-project-link>
+                  <span class="pill__label">
+                    <span>Open project</span>
+                    <span aria-hidden="true">Open project</span>
+                  </span>
+                  <Arrow class="pill__arrow" />
+                </a>
+                <button class="bracket" type="button" data-peek-close>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+          <script type="application/json" data-peek-data set:html={JSON.stringify(peek)} />
+        </>
+      ) : (
+        <>
+          <canvas class="field" data-field aria-hidden="true" />
+          <div class="hero__trail" data-trail aria-hidden="true">
+            {strip.slice(0, 8).map((p) => <Image src={p.data.cover} alt="" width={420} height={520} quality={70} loading="eager" />)}
+          </div>
+        </>
+      )
+    }
+
+    <div class="hero__top wrap">
+      {
+        site.available && (
+          <p class="hero__avail mono" data-reveal data-delay="0.75">
+            <span class="pulse" aria-hidden="true" />
+            Available for work
+          </p>
+        )
+      }
+      <p class="hero__intro" data-split data-delay="0.55">Graphic designer based in Brussels — web design, illustration &amp; visuals.</p>
+    </div>
+
+    <div class="hero__word wrap">
+      <p class="hero__kicker mono" aria-hidden="true" data-reveal data-delay="0.85">
+        [<span class="hero__rot"><span data-rotate={JSON.stringify(site.disciplines)}>{site.disciplines[0]}</span></span>]
+      </p>
+      <p class="wordmark" data-wordmark aria-hidden="true">
+        {letters.map((ch) => <span class="wm__l"><span class="wm__i">{ch}</span></span>)}
+      </p>
+    </div>
+
+    <div class="hero__base wrap mono" data-reveal data-delay="0.95">
+      <span>{site.name} — Portfolio ©{year}</span>
+      <span class="hero__where">{site.locationShort} — <span data-clock="short">--:--</span></span>
+      <span>Scroll ↓</span>
+    </div>
+  </section>
+
+  <section class="strip" data-marquee data-marquee-pause data-speed="0.55" aria-label="A few projects">
+    <ul class="strip__track" data-marquee-track>
+      {
+        strip.map((p, i) => (
+          <li class="strip__item">
+            <a class="strip__link" href={`/work/${p.id}/`} data-project-link data-accent={p.data.accent ?? ''} data-cursor="View">
+              <div class="strip__frame" data-cover={p.id} style={`aspect-ratio:${Math.min(1.45, Math.max(0.78, p.data.cover.width / p.data.cover.height)).toFixed(3)}`}>
+                <Image src={p.data.cover} alt="" widths={[420, 760, 1100]} sizes="(min-width: 900px) 30vw, 62vw" quality={74} loading={i < 4 ? 'eager' : 'lazy'} />
+              </div>
+              <span class="strip__cap mono">
+                <span class="dim">{pad(p.data.number)}</span>
+                <span>{p.data.title}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="about wrap section grid" data-rail="01">
+    <p class="eyebrow mono about__eyebrow" data-reveal>
+      <span class="eyebrow__num">01</span>
+      <span class="eyebrow__rule"></span>
+      <span>About</span>
+    </p>
+    <div class="about__body">
+      <p class="about__text" data-scrub-words>{site.intro}</p>
+      <div class="about__row" data-reveal>
+        <Pill href="/about/" label="More about me" />
+        <a class="about__face frame" href="/about/" tabindex="-1" aria-hidden="true">
+          <Image src={about.portrait} alt="" width={240} height={240} quality={76} loading="lazy" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Services>
+    <div class="svc-more" data-reveal>
+      <Pill href="/stack/" label="Tools I use" ghost />
+    </div>
+  </Services>
+
+  <section class="work wrap section" data-rail="02">
+    <header class="work__head grid">
+      <p class="eyebrow mono work__eyebrow" data-reveal>
+        <span class="eyebrow__num">02</span>
+        <span class="eyebrow__rule"></span>
+        <span>Work</span>
+      </p>
+      <h2 class="work__title display" data-split="chars">Selected work</h2>
+      <div class="work__side">
+        <p class="work__intro pretty" data-split>{site.workIntro}</p>
+        <div data-reveal>
+          <Pill href="/work/" label={`See all ${work.length} projects`} />
+        </div>
+      </div>
+    </header>
+    <div class="work__pin" data-hscroll>
+      <div class="work__track" data-hscroll-track>
+        {featured.map((p) => <ProjectCard entry={p} large class="work__card" ratio="4 / 3" sizes="(min-width: 900px) 48vw, 100vw" />)}
+        <a class="work__all" href="/work/" data-cursor="All">
+          <span class="mono dim">{work.length} projects</span>
+          <span class="work__all-title display">See all work</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <ContactCta index="03" />
+
+  <div class="rail mono" aria-hidden="true" data-rail-ui>
+    <span data-rail-now>01</span>
+    <span class="rail__line"><i data-rail-fill></i></span>
+    <span>03</span>
+  </div>
+</Base>
+
+<script>
+  import { gsap, reduced, finePointer } from '../scripts/motion';
+  import { initMosaic } from '../scripts/mosaic';
+
+  initMosaic();
+
+  // clicking a thumbnail in the portrait opens a short preview of that project
+  const peek = document.querySelector<HTMLElement>('[data-peek]');
+  const peekData = document.querySelector('[data-peek-data]');
+  if (peek && peekData) {
+    type Info = { title: string; meta: string; text: string; tools: string; accent: string; cover: string };
+    const info: Record<string, Info> = JSON.parse(peekData.textContent || '{}');
+    const zone = peek.parentElement as HTMLElement;
+    const root = document.documentElement;
+    const part = <T extends HTMLElement>(name: string) => peek.querySelector<T>(`[data-peek-${name}]`)!;
+    const close = () => {
+      if (peek.hidden) return;
+      peek.hidden = true;
+      root.style.removeProperty('--accent');
+      root.style.removeProperty('--on-accent');
+      root.classList.remove('has-glow');
+    };
+    zone.addEventListener('mosaic:pick', (e) => {
+      const { slug, x, y } = (e as CustomEvent<{ slug: string; x: number; y: number }>).detail;
+      const project = info[slug];
+      if (!project) return;
+      part<HTMLImageElement>('img').src = project.cover;
+      part('frame').dataset.cover = slug;
+      part('meta').textContent = project.meta;
+      part('title').textContent = project.title;
+      part('text').textContent = project.text;
+      part('tools').textContent = project.tools;
+      part<HTMLAnchorElement>('link').href = `/work/${slug}/`;
+      peek.dataset.accent = project.accent;
+      peek.hidden = false;
+      // beside the click, kept inside the hero
+      const w = peek.offsetWidth, h = peek.offsetHeight;
+      const left = x + 40 + w > zone.clientWidth - 16 ? x - 40 - w : x + 40;
+      const top = Math.min(Math.max(y - h / 2, 80), Math.max(80, zone.clientHeight - h - 16));
+      gsap.set(peek, { x: Math.max(16, left), y: top });
+      if (project.accent) {
+        root.style.setProperty('--accent', project.accent);
+        root.style.setProperty('--on-accent', '#09090a');
+        root.classList.add('has-glow');
+      }
+      if (!reduced) gsap.fromTo(peek, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'expo.out' });
+      part<HTMLAnchorElement>('link').focus({ preventScroll: true });
+    });
+    part('close').addEventListener('click', close);
+    addEventListener('keydown', (e) => e.key === 'Escape' && close());
+    document.addEventListener('pointerdown', (e) => {
+      if (!(e.target instanceof Element) || !e.target.closest('[data-peek]')) close();
+    });
+    addEventListener('scroll', () => scrollY > innerHeight * 0.5 && close(), { passive: true });
+  }
+
+  // moving the pointer across the hero leaves a trail of work behind it
+  const trail = document.querySelector<HTMLElement>('[data-trail]');
+  const hero = trail?.parentElement;
+  if (trail && hero && finePointer && !reduced) {
+    const shots = [...trail.querySelectorAll<HTMLElement>('img')];
+    let next = 0;
+    let last = { x: -999, y: -999 };
+    let z = 1;
+    hero.addEventListener('pointermove', (e) => {
+      if (Math.hypot(e.clientX - last.x, e.clientY - last.y) < 130) return;
+      last = { x: e.clientX, y: e.clientY };
+      const box = hero.getBoundingClientRect();
+      const img = shots[next++ % shots.length];
+      gsap.killTweensOf(img);
+      gsap.set(img, { x: e.clientX - box.left, y: e.clientY - box.top, xPercent: -50, yPercent: -50, zIndex: z++, rotate: gsap.utils.random(-9, 9) });
+      gsap.fromTo(img, { autoAlpha: 1, scale: 0.55 }, { scale: 1, duration: 0.7, ease: 'expo.out' });
+      gsap.to(img, { autoAlpha: 0, scale: 0.85, duration: 0.5, ease: 'power2.in', delay: 0.75 });
+    });
+  }
+
+  // Selected work: vertical scrolling drives the row sideways while it stays pinned
+  const pin = document.querySelector<HTMLElement>('[data-hscroll]');
+  const track = pin?.querySelector<HTMLElement>('[data-hscroll-track]');
+  if (pin && track) {
+    gsap.matchMedia().add('(min-width: 901px) and (prefers-reduced-motion: no-preference)', () => {
+      const distance = () => Math.max(0, track.scrollWidth - pin.clientWidth);
+      gsap.to(track, {
+        x: () => -distance(),
+        ease: 'none',
+        scrollTrigger: { trigger: pin, start: 'center center', end: () => `+=${distance()}`, pin: true, scrub: 0.6, invalidateOnRefresh: true, anticipatePin: 1, refreshPriority: 1 },
+      });
+    });
+  }
+
+  // the small "01 — 03" progress rail on the right edge
+  const rail = document.querySelector<HTMLElement>('[data-rail-ui]');
+  if (rail) {
+    const fill = rail.querySelector('[data-rail-fill]');
+    const now = rail.querySelector('[data-rail-now]');
+    const sections = [...document.querySelectorAll<HTMLElement>('[data-rail]')];
+    const sync = () => {
+      let current = sections[0]?.dataset.rail || '01';
+      for (const section of sections) if (section.getBoundingClientRect().top < innerHeight * 0.55) current = section.dataset.rail || current;
+      if (now && now.textContent !== current) now.textContent = current;
+    };
+    gsap.fromTo(fill, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: 0.3, onUpdate: sync, onRefresh: sync } });
+  }
+</script>
+
+<style>
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 86svh;
+    padding-top: calc(var(--header-h) + clamp(0.5rem, 2vh, 2rem));
+  }
+  .hero > :not(.hero__trail):not(canvas):not(.mosaic-tip):not(.peek):not(script) {
+    position: relative;
+    z-index: 1;
+  }
+  /* test version: the portrait canvas fills the hero and the page is a full screen tall */
+  .hero--mosaic {
+    min-height: 100svh;
+  }
+  .mosaic {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  /* the short preview that opens when a thumbnail is clicked */
+  .peek {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    width: min(21rem, calc(100vw - 2 * var(--gutter)));
+    padding: 0.6rem;
+    border-radius: calc(var(--radius) * 1.2);
+    background: var(--surface);
+    box-shadow:
+      inset 0 0 0 1px var(--line-2),
+      0 30px 80px rgb(0 0 0 / 0.45);
+    cursor: default;
+  }
+  .peek__img {
+    aspect-ratio: 4 / 3;
+    border-radius: calc(var(--radius) * 0.8);
+  }
+  .peek__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .peek__body {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.9rem 0.5rem 0.5rem;
+  }
+  .peek__title {
+    font-size: 1.7rem;
+    font-weight: 650;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+  }
+  .peek__text {
+    color: var(--fg-2);
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+  .peek__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.5rem;
+  }
+  .peek__actions .pill {
+    padding: 0.85em 1.2em 0.85em 1.3em;
+    font-size: 0.95rem;
+  }
+
+  /* the label that follows the cursor over the portrait */
+  .mosaic-tip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    padding: 0.6em 0.9em;
+    border-radius: 999px;
+    background: var(--fg);
+    color: var(--ink);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .mosaic-tip.is-on {
+    opacity: 1;
+  }
+  .hero__trail {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: clip;
+  }
+  .hero__trail :global(img) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: clamp(9rem, 15vw, 15rem);
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+    opacity: 0;
+    visibility: hidden;
+    transition: none;
+  }
+  .hero__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+  .hero__avail {
+    display: inline-flex;
+    align-items: center;
+    gap: 1em;
+    padding-top: 0.35em;
+  }
+  .hero__intro {
+    max-width: 23ch;
+    font-size: clamp(1.15rem, 0.9rem + 0.95vw, 1.75rem);
+    font-weight: 500;
+    line-height: 1.16;
+    letter-spacing: -0.022em;
+    text-align: right;
+  }
+  .hero__word {
+    align-self: end;
+    display: grid;
+    gap: clamp(0.5rem, 1.2vw, 1.25rem);
+  }
+  .hero__kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    color: var(--fg-2);
+    font-size: clamp(1rem, 0.55rem + 1.25vw, 1.75rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .hero__rot {
+    display: inline-block;
+    overflow: clip;
+    color: var(--fg);
+  }
+  .hero__rot > span {
+    display: inline-block;
+  }
+  .wordmark {
+    display: flex;
+    justify-content: space-between;
+    font-size: 17.4vw;
+    font-weight: 800;
+    line-height: 0.8;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  .wm__l {
+    display: block;
+    overflow-x: visible;
+    overflow-y: clip;
+    padding-block: 0.03em;
+  }
+  .wm__i {
+    display: block;
+    will-change: transform;
+  }
+  .hero__base {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: clamp(0.9rem, 1.8vw, 1.6rem);
+    color: var(--fg-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- moving strip ---------- */
+  .strip {
+    overflow: clip;
+    padding-block: clamp(0.5rem, 1.5vw, 1.5rem) 0;
+  }
+  .strip__track {
+    display: flex;
+    gap: var(--gap);
+    width: max-content;
+    padding-inline: var(--gutter);
+    will-change: transform;
+  }
+  /* without motion the strip is simply scrollable */
+  .strip:not(.is-live) {
+    overflow-x: auto;
+  }
+  .strip__link {
+    display: grid;
+    gap: 0.8rem;
+  }
+  .strip__frame {
+    height: clamp(13rem, 9rem + 21vw, 29rem);
+    overflow: clip;
+    border-radius: var(--radius);
+    background: var(--surface);
+    transform: skewX(var(--skew, 0deg));
+  }
+  .strip__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease-out);
+  }
+  .strip__link:hover .strip__frame :global(img) {
+    transform: scale(1.05);
+  }
+  .strip__cap {
+    display: flex;
+    gap: 0.9em;
+  }
+
+  /* ---------- about ---------- */
+  .about {
+    row-gap: 2rem;
+    align-items: start;
+  }
+  .about__eyebrow {
+    grid-column: 1 / span 3;
+    padding-top: 0.9em;
+  }
+  .about__body {
+    grid-column: 4 / -1;
+    display: grid;
+    gap: clamp(2rem, 4vw, 3.75rem);
+  }
+  .about__text {
+    font-size: clamp(1.95rem, 0.8rem + 4.9vw, 5.6rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+  .about__row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .about__face {
+    width: clamp(3.4rem, 2.6rem + 2vw, 4.6rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+  .about__face :global(img) {
+    object-position: 50% 18%;
+  }
+
+  .svc-more {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ---------- selected work ---------- */
+  .work {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+  }
+  .work__head {
+    row-gap: clamp(1.25rem, 2.5vw, 2.5rem);
+    align-items: end;
+  }
+  .work__eyebrow {
+    grid-column: 1 / -1;
+  }
+  .work__title {
+    --wdth: 80;
+    grid-column: 1 / span 8;
+    font-size: var(--fs-display);
+  }
+  .work__side {
+    grid-column: 9 / -1;
+    display: grid;
+    gap: 1.5rem;
+    justify-items: start;
+    padding-bottom: 0.4rem;
+  }
+  .work__intro {
+    color: var(--fg-2);
+    max-width: 34ch;
+  }
+  /* on desktop the featured projects slide sideways while the section stays pinned */
+  .work__track {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap);
+    width: max-content;
+    will-change: transform;
+  }
+  .work__track :global(.work__card) {
+    flex: none;
+    width: min(48vw, calc((100svh - 13rem) * 4 / 3));
+  }
+  .work__all {
+    flex: none;
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+    width: 36vw;
+    aspect-ratio: 4 / 3;
+    padding-inline: clamp(1.5rem, 4vw, 4rem);
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: background-color 0.5s var(--ease-out), color 0.5s var(--ease-out);
+  }
+  .work__all-title {
+    font-size: clamp(2.4rem, 5.4vw, 6.5rem);
+    transition: font-stretch 0.8s var(--ease-out);
+  }
+  .work__all:hover,
+  .work__all:focus-visible {
+    background: var(--fg);
+    color: var(--ink);
+  }
+  .work__all:hover .work__all-title {
+    --wdth: 118;
+  }
+  .work__all:hover .dim {
+    color: var(--ink);
+  }
+
+  /* ---------- progress rail ---------- */
+  .rail {
+    position: fixed;
+    top: 50%;
+    right: calc(var(--gutter) * 0.5);
+    z-index: 80;
+    display: grid;
+    justify-items: center;
+    gap: 0.9rem;
+    transform: translateY(-50%);
+    color: #fff;
+    mix-blend-mode: difference;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+  .rail__line {
+    position: relative;
+    width: 1px;
+    height: clamp(4rem, 12vh, 7rem);
+    background: rgb(255 255 255 / 0.25);
+  }
+  .rail__line i {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    transform-origin: top;
+    transform: scaleY(0);
+  }
+
+  @media (max-width: 900px) {
+    .rail {
+      display: none;
+    }
+    .about__eyebrow,
+    .about__body,
+    .work__title,
+    .work__side {
+      grid-column: 1 / -1;
+    }
+    .work__track {
+      flex-direction: column;
+      width: auto;
+      gap: clamp(2.5rem, 6vw, 4rem);
+    }
+    .work__track :global(.work__card),
+    .work__all {
+      width: 100%;
+    }
+  }
+  @media (max-width: 640px) {
+    .hero {
+      min-height: 76svh;
+    }
+    .hero__top {
+      flex-direction: column-reverse;
+      gap: 1.25rem;
+    }
+    .hero__intro {
+      text-align: left;
+    }
+    .hero__base > span:first-child {
+      display: none;
+    }
+  }
+</style>

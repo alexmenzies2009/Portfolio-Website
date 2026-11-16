@@ -1,0 +1,389 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import { getWork, type Project } from '../../lib/work';
+import type { ImageMetadata } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Arrow from '../../components/Arrow.astro';
+import Pill from '../../components/Pill.astro';
+
+export async function getStaticPaths() {
+  const work = await getWork();
+  return work.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+interface Props {
+  entry: Project;
+}
+const { entry } = Astro.props;
+const { title, tagline, category, tools, cover, gallery, link, video, accent, number } = entry.data;
+const { Content } = await render(entry);
+
+const all = await getWork();
+const here = all.findIndex((p) => p.id === entry.id);
+const next = all[(here + 1) % all.length];
+const prev = all[(here - 1 + all.length) % all.length];
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// Gallery rhythm: wide images take a full row, portrait/square/small ones sit two-up.
+type Shot = { img: ImageMetadata; full: string; n: number };
+const shots: Shot[] = await Promise.all(
+  [cover, ...gallery].map(async (img, n) => ({ img, n, full: (await getImage({ src: img, width: Math.min(img.width, 2560), format: 'webp', quality: 84 })).src })),
+);
+const isWide = (img: ImageMetadata) => img.width / img.height >= 1.25 && img.width >= 1300;
+const rows: Shot[][] = [];
+for (const shot of shots.slice(1)) {
+  const last = rows[rows.length - 1];
+  if (!isWide(shot.img) && last && last.length === 1 && !isWide(last[0].img)) last.push(shot);
+  else rows.push([shot]);
+}
+const total = shots.length;
+const alt = (n: number) => `${title} — ${category}, image ${n + 1} of ${total}`;
+
+const embed = video
+  ? video.provider === 'youtube'
+    ? `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&mute=1&loop=1&playlist=${video.id}&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3`
+    : `https://player.vimeo.com/video/${video.id}?muted=1&autoplay=1&autopause=0&loop=1&dnt=1`
+  : null;
+// Each image keeps its own proportions and is never blown up far past its real size.
+// Wide images run edge to edge; everything else is sized to fit the screen height.
+const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)};--max:${Math.round(img.width * 1.15)}px`;
+---
+
+<Base title={`${title} · ${category}`} description={tagline} image={cover} accent={accent}>
+  <article class="pj">
+    <header class="pj__head wrap">
+      <div class="pj__nav mono" data-reveal data-delay="0.5">
+        <a class="bracket" href="/work/">All work</a>
+        <span class="dim">← → to browse &nbsp;·&nbsp; {pad(number)} / {pad(all.length)}</span>
+      </div>
+      <h1 class="pj__title display" data-fit data-fit-max="30">
+        <span data-fit-text data-split="chars" data-delay="0.2">{title}</span>
+      </h1>
+      <div class="pj__intro grid">
+        <p class="pj__tagline lead balance" data-split data-delay="0.45">{tagline}</p>
+        <dl class="pj__meta" data-reveal data-delay="0.6">
+          <div>
+            <dt class="mono">Type</dt>
+            <dd>{category}</dd>
+          </div>
+          <div>
+            <dt class="mono">Tools</dt>
+            <dd>{tools.join(', ')}</dd>
+          </div>
+          {
+            link && (
+              <div>
+                <dt class="mono">Link</dt>
+                <dd>
+                  <a class="pj__link ulink" href={link.url} target="_blank" rel="noopener">
+                    {link.label}
+                    <Arrow />
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+        </dl>
+      </div>
+    </header>
+
+    <div class="pj__cover wrap">
+      <button class:list={['pj__coverframe frame vt-cover', !isWide(cover) && 'is-fit']} type="button" data-hero-cover data-lightbox={shots[0].full} data-alt={alt(0)} data-cursor="Zoom" style={box(cover)} aria-label={`Open image 1 of ${total}`}>
+        <Image src={cover} alt={alt(0)} widths={[640, 1024, 1600, 2200, 2560]} sizes="100vw" quality={80} loading="eager" fetchpriority="high" data-parallax="0.05" />
+      </button>
+    </div>
+
+    <section class="pj__about wrap grid">
+      <h2 class="eyebrow mono" data-reveal>
+        <span class="eyebrow__rule"></span>
+        <span>About</span>
+      </h2>
+      <div class="pj__text pretty" data-reveal>
+        <Content />
+      </div>
+    </section>
+
+    {
+      embed && (
+        <section class="pj__video wrap">
+          <div class="pj__embed frame" data-reveal="clip">
+            <iframe src={embed} title={`${title} — video`} loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen />
+          </div>
+        </section>
+      )
+    }
+
+    {
+      rows.length > 0 && (
+        <section class="pj__gallery wrap" aria-label="Project images">
+          {rows.map((row) => (
+            <div class:list={['pj__row', row.length === 2 ? 'pj__row--pair' : isWide(row[0].img) ? 'pj__row--wide' : 'pj__row--solo']}>
+              {row.map((shot) => (
+                <button
+                  class="pj__shot frame"
+                  type="button"
+                  data-lightbox={shot.full}
+                  data-alt={alt(shot.n)}
+                  data-cursor="Zoom"
+                  data-reveal="clip"
+                  style={box(shot.img)}
+                  aria-label={`Open image ${shot.n + 1} of ${total}`}
+                >
+                  <Image src={shot.img} alt={alt(shot.n)} widths={[640, 1024, 1600, 2200, 2560]} sizes={row.length === 2 ? '(min-width: 760px) 50vw, 100vw' : '100vw'} quality={80} loading="lazy" />
+                </button>
+              ))}
+            </div>
+          ))}
+        </section>
+      )
+    }
+  </article>
+
+  <a class="sr-only" href={`/work/${prev.id}/`} data-prev-project tabindex="-1" aria-hidden="true">Previous project</a>
+  <a class="nx wrap" href={`/work/${next.id}/`} data-next-project data-project-link data-accent={next.data.accent ?? ''} data-cursor="Next" style={next.data.accent ? `--card-accent:${next.data.accent}` : undefined}>
+    <span class="nx__top mono">
+      <span>Next project</span>
+      <span class="dim">{pad(next.data.number)} / {pad(all.length)}</span>
+    </span>
+    <span class="nx__title display" data-fit data-fit-max="26">
+      <span data-fit-text>{next.data.title}</span>
+    </span>
+    <span class="nx__thumb" data-cover={next.id}>
+      <Image src={next.data.cover} alt="" widths={[480, 800, 1200]} sizes="(min-width: 900px) 26vw, 60vw" quality={76} loading="lazy" />
+    </span>
+  </a>
+
+  <div class="pj__end wrap">
+    <Pill href="/work/" label="All projects" ghost />
+    <Pill href="/contact/" label="Let's talk" />
+  </div>
+</Base>
+
+<script>
+  import { gsap, reduced } from '../../scripts/motion';
+
+  // the cover starts slightly inset and opens up as it scrolls into place
+  const cover = document.querySelector<HTMLElement>('[data-hero-cover]');
+  if (cover && !reduced) {
+    gsap.fromTo(cover, { scale: 0.9 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: cover, start: 'top 95%', end: 'top 12%', scrub: 0.5 } });
+  }
+  // left / right arrow keys step through the projects
+  addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || document.querySelector('dialog[open]') || document.documentElement.classList.contains('menu-open')) return;
+    const target = e.target as HTMLElement | null;
+    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    const link = document.querySelector<HTMLAnchorElement>(e.key === 'ArrowRight' ? '[data-next-project]' : e.key === 'ArrowLeft' ? '[data-prev-project]' : 'x-none');
+    if (link) link.click();
+  });
+</script>
+
+<style>
+  .pj {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(3rem, 6vw, 7rem);
+  }
+  .pj__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.25rem, 2.6vw, 2.5rem);
+    padding-top: calc(var(--header-h) + clamp(1.5rem, 6vh, 4.5rem));
+  }
+  .pj__nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .pj__title {
+    font-size: var(--fs-display);
+    line-height: 0.84;
+    white-space: nowrap;
+  }
+  .pj__title > span {
+    display: inline-block;
+  }
+  .pj__intro {
+    row-gap: 2rem;
+    align-items: start;
+    padding-top: clamp(0.5rem, 1.5vw, 1.5rem);
+  }
+  .pj__tagline {
+    grid-column: 1 / span 7;
+    max-width: 24ch;
+  }
+  .pj__meta {
+    grid-column: 9 / -1;
+    display: grid;
+    border-top: 1px solid var(--line-2);
+  }
+  .pj__meta > div {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .pj__meta dt {
+    color: var(--fg-3);
+  }
+  .pj__meta dd {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .pj__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--accent-text);
+  }
+  .pj__link :global(.arrow) {
+    width: 0.6em;
+    height: 0.6em;
+  }
+
+  .pj__coverframe,
+  .pj__shot {
+    display: block;
+    width: min(100%, var(--max));
+    aspect-ratio: var(--ar);
+    margin-inline: auto;
+    cursor: zoom-in;
+  }
+  .pj__coverframe.is-fit,
+  .pj__row--solo .pj__shot {
+    width: min(100%, var(--max), calc(88svh * var(--ar)));
+  }
+  .pj__coverframe :global(img),
+  .pj__shot :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pj__about {
+    row-gap: 1.25rem;
+    align-items: start;
+  }
+  .pj__about h2 {
+    grid-column: 1 / span 3;
+    padding-top: 0.55em;
+  }
+  .pj__text {
+    grid-column: 5 / span 7;
+    font-size: clamp(1.25rem, 1rem + 1.1vw, 2rem);
+    font-weight: 500;
+    line-height: 1.24;
+    letter-spacing: -0.02em;
+  }
+  .pj__text :global(p + p) {
+    margin-top: 1em;
+  }
+
+  .pj__embed {
+    aspect-ratio: 16 / 9;
+    max-width: 78rem;
+    margin-inline: auto;
+  }
+  .pj__embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .pj__gallery {
+    display: grid;
+    gap: var(--gap);
+  }
+  .pj__row {
+    display: grid;
+    gap: var(--gap);
+  }
+  .pj__row--pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* ---------- next project ---------- */
+  .nx {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(0.75rem, 1.6vw, 1.5rem);
+    margin-top: var(--section);
+    padding-block: clamp(1.5rem, 3vw, 2.5rem) clamp(2rem, 4vw, 4rem);
+    border-top: 1px solid var(--line);
+    overflow: clip;
+  }
+  .nx__top {
+    display: flex;
+    justify-content: space-between;
+    font-variant-numeric: tabular-nums;
+  }
+  .nx__title {
+    font-size: var(--fs-display);
+    line-height: 0.86;
+    white-space: nowrap;
+    transition: color 0.5s var(--ease-out);
+  }
+  .nx__title > span {
+    display: inline-block;
+  }
+  .nx:hover .nx__title,
+  .nx:focus-visible .nx__title {
+    color: var(--card-accent, var(--fg));
+  }
+  .nx__thumb {
+    position: absolute;
+    right: calc(var(--gutter) + 6vw);
+    top: 50%;
+    width: clamp(10rem, 20vw, 21rem);
+    aspect-ratio: 4 / 5;
+    overflow: clip;
+    border-radius: var(--radius);
+    translate: 0 -42%;
+    rotate: 5deg;
+    scale: 0.6;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.4s,
+      scale 0.7s var(--ease-out),
+      rotate 0.7s var(--ease-out);
+  }
+  .nx:hover .nx__thumb,
+  .nx:focus-visible .nx__thumb {
+    opacity: 1;
+    scale: 1;
+    rotate: -3deg;
+  }
+  .nx__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pj__end {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  @media (max-width: 900px) {
+    .pj__tagline,
+    .pj__meta,
+    .pj__about h2,
+    .pj__text {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 760px) {
+    .pj__row--pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .nx__thumb {
+      display: none;
+    }
+  }
+</style>

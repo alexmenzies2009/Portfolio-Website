@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Pill from '../components/Pill.astro';
+---
+
+<Base title="Page not found" description="This page does not exist.">
+  <PageHero eyebrow="Error" lines={['404']} max={48}>
+    <p class="nf__text lead" data-split data-delay="0.5">[ Page not found ] — this one must have been left on the artboard.</p>
+    <div class="nf__links" data-reveal data-delay="0.65">
+      <Pill href="/" label="Go home" />
+      <Pill href="/work/" label="See the work" ghost />
+    </div>
+  </PageHero>
+</Base>
+
+<style>
+  .nf__text {
+    max-width: 26ch;
+    color: var(--fg-2);
+  }
+  .nf__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+</style>

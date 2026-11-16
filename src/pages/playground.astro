@@ -1,0 +1,169 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import ContactCta from '../components/ContactCta.astro';
+import { site, playground } from '../data/site';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const pieces = await Promise.all(
+  playground.map(async (p, i) => ({
+    ...p,
+    n: i + 1,
+    full: (await getImage({ src: p.image, width: Math.min(p.image.width, 2560), format: 'webp', quality: 84 })).src,
+  })),
+);
+---
+
+<Base title="Playground" description={site.playgroundIntro} image={playground[0].image}>
+  <PageHero eyebrow="Explore the" lines={['Play', 'ground']} count={pieces.length}>
+    <p class="pg-intro pretty" data-split data-delay="0.55">{site.playgroundIntro}</p>
+  </PageHero>
+
+  <section class="pg-film wrap">
+    <div class="pg-film__frame frame" data-film>
+      <video src="/media/playground.mp4" autoplay muted loop playsinline preload="metadata" aria-label="Looping AI motion study"></video>
+    </div>
+  </section>
+
+  <section class="pg wrap section" aria-label="AI explorations">
+    <ul class="pg__grid grid">
+      {
+        pieces.map((p) => (
+          <li class:list={['pg__item', `pg__item--${p.n}`]} data-drift={p.n % 2 ? '-36' : '-70'}>
+            <button class="pg__shot frame" type="button" data-tilt data-lightbox={p.full} data-alt={`${p.title} — ${p.label}`} data-accent={p.accent} data-cursor="Zoom" data-reveal="clip" aria-label={`Open ${p.title}`}>
+              <Image src={p.image} alt={`${p.title} — ${p.label}, AI-generated artwork`} widths={[480, 800, 1200, 1800]} sizes="(min-width: 900px) 45vw, 100vw" quality={78} loading="lazy" />
+            </button>
+            <p class="pg__cap">
+              <span class="mono dim">
+                {pad(p.n)} — {p.label}
+              </span>
+              <span class="pg__title">{p.title}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <ContactCta />
+</Base>
+
+<script>
+  import { gsap, reduced } from '../scripts/motion';
+  // the film window grows to full width as it scrolls into view
+  const film = document.querySelector<HTMLElement>('[data-film]');
+  if (film && !reduced) {
+    gsap.fromTo(film, { scale: 0.72, borderRadius: 40 }, { scale: 1, borderRadius: 18, ease: 'none', scrollTrigger: { trigger: film, start: 'top 100%', end: 'top 18%', scrub: 0.5 } });
+  }
+</script>
+
+<style>
+  .pg-intro {
+    max-width: 36ch;
+    font-size: var(--fs-lead);
+    font-weight: 500;
+    line-height: 1.16;
+    letter-spacing: -0.022em;
+  }
+  .pg-film {
+    padding-top: clamp(2.5rem, 6vw, 6rem);
+  }
+  .pg-film__frame {
+    aspect-ratio: 16 / 9;
+    max-height: 88svh;
+    width: 100%;
+    transform-origin: 50% 0%;
+  }
+  .pg__grid {
+    row-gap: clamp(3rem, 7vw, 8rem);
+    align-items: start;
+  }
+  .pg__item {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .pg__shot {
+    display: block;
+    width: 100%;
+    cursor: zoom-in;
+  }
+  .pg__shot :global(img) {
+    transition: transform 1.4s var(--ease-out);
+  }
+  .pg__shot:hover :global(img) {
+    transform: scale(1.04);
+  }
+  .pg__cap {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .pg__title {
+    font-size: clamp(1.3rem, 1rem + 1.2vw, 2.1rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+  }
+
+  /* a collage, not a table: every piece gets its own place and proportion */
+  .pg__item--1 {
+    grid-column: 1 / span 5;
+  }
+  .pg__item--1 .pg__shot,
+  .pg__item--2 .pg__shot,
+  .pg__item--7 .pg__shot,
+  .pg__item--8 .pg__shot {
+    aspect-ratio: 1;
+  }
+  .pg__item--2 {
+    grid-column: 7 / -1;
+    margin-top: 14vw;
+  }
+  .pg__item--3 {
+    grid-column: 2 / span 4;
+  }
+  .pg__item--3 .pg__shot {
+    aspect-ratio: 3 / 5;
+  }
+  .pg__item--4 {
+    grid-column: 7 / span 3;
+    margin-top: 10vw;
+  }
+  .pg__item--4 .pg__shot {
+    aspect-ratio: 10 / 11;
+  }
+  .pg__item--5 {
+    grid-column: 10 / -1;
+    margin-top: 26vw;
+  }
+  .pg__item--5 .pg__shot {
+    aspect-ratio: 2 / 3;
+  }
+  .pg__item--6 {
+    grid-column: 2 / span 10;
+  }
+  .pg__item--6 .pg__shot {
+    aspect-ratio: 3 / 2;
+  }
+  .pg__item--7 {
+    grid-column: 1 / span 6;
+  }
+  .pg__item--8 {
+    grid-column: 8 / -1;
+    margin-top: 12vw;
+  }
+
+  @media (max-width: 760px) {
+    .pg__item {
+      grid-column: 1 / -1 !important;
+      margin-top: 0 !important;
+    }
+    .pg__item:nth-child(even) {
+      padding-left: 14vw;
+    }
+    .pg__item:nth-child(3n) {
+      padding-right: 14vw;
+      padding-left: 0;
+    }
+  }
+</style>

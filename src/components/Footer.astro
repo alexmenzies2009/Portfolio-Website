@@ -1,0 +1,130 @@
+---
+import { nav, socials, site } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="ftr">
+  <div class="ftr__grid wrap grid">
+    <div class="ftr__col ftr__col--a">
+      <p class="mono dim">Sitemap</p>
+      <ul class="ftr__list">
+        {
+          nav.map((item) => (
+            <li>
+              <a class="ulink" href={item.href}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="ftr__col ftr__col--b">
+      <p class="mono dim">Elsewhere</p>
+      <ul class="ftr__list">
+        {
+          socials.map((s) => (
+            <li>
+              <a class="ulink" href={s.href} target="_blank" rel="noopener">
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="ftr__col ftr__col--c">
+      <p class="mono dim">Local time</p>
+      <p class="ftr__time"><span data-clock data-zone={site.timezone}>--:--:--</span></p>
+      <p class="mono dim">[ {site.location} ]</p>
+      {
+        site.available && (
+          <p class="ftr__avail mono">
+            <span class="pulse" aria-hidden="true" /> Available for work
+          </p>
+        )
+      }
+    </div>
+  </div>
+
+  <div class="ftr__mark wrap" aria-hidden="true">
+    <div class="display" data-fit>
+      <span data-fit-text data-split="chars">{site.name}</span>
+    </div>
+  </div>
+
+  <div class="ftr__base wrap mono">
+    <span>© {year} {site.name}</span>
+    <a class="bracket" href="#top">Back to top</a>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    position: relative;
+    margin-top: var(--section);
+    padding-top: clamp(3rem, 2rem + 5vw, 6.5rem);
+    border-top: 1px solid var(--line);
+    overflow: clip;
+  }
+  .ftr__grid {
+    row-gap: 3rem;
+  }
+  .ftr__col {
+    display: grid;
+    align-content: start;
+    gap: 1.1rem;
+    grid-column: span 4;
+  }
+  .ftr__list {
+    display: grid;
+    gap: 0.3rem;
+    justify-items: start;
+  }
+  .ftr__list a {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+  }
+  .ftr__time {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+    font-variant-numeric: tabular-nums;
+  }
+  .ftr__avail {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9em;
+    margin-top: 0.4rem;
+  }
+  .ftr__mark {
+    margin-top: clamp(3.5rem, 2rem + 7vw, 8rem);
+  }
+  .ftr__mark .display {
+    font-size: 13vw;
+    line-height: 0.82;
+    white-space: nowrap;
+  }
+  .ftr__mark [data-fit-text] {
+    display: inline-block;
+  }
+  .ftr__base {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 1.4rem 1.6rem;
+    color: var(--fg-2);
+  }
+  @media (max-width: 760px) {
+    .ftr__col {
+      grid-column: span 6;
+    }
+    .ftr__col--c {
+      grid-column: span 12;
+    }
+  }
+</style>

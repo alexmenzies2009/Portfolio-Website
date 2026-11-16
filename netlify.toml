@@ -1,0 +1,8 @@
+# Used only if the site is later connected to a Git repository on Netlify.
+# (Dragging the dist folder onto Netlify needs none of this.)
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
