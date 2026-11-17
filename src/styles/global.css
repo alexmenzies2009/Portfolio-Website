@@ -295,7 +295,7 @@ html:not(.js) [data-fit] {
 
 /* content is hidden until the motion script has set its start states (never without JS) */
 html.js:not(.is-ready) [data-split],
-html.js:not(.is-ready) [data-reveal] {
+html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
   visibility: hidden;
 }
 
@@ -539,16 +539,24 @@ html.js:not(.is-ready) [data-reveal] {
   navigation: auto;
 }
 @media (prefers-reduced-motion: no-preference) {
+  /* the old page sinks back and fades while the new one settles in over it */
   ::view-transition-old(root) {
-    animation: vt-out 0.65s var(--ease-io) both;
+    animation: vt-out 0.5s var(--ease-out) both;
   }
   ::view-transition-new(root) {
-    animation: vt-in 0.65s var(--ease-io) both;
+    animation: vt-in 0.6s var(--ease-out) 0.08s both;
   }
+  /* a project's cover travels between its card and its page above everything else */
   ::view-transition-group(project-cover) {
-    animation-duration: 0.75s;
+    animation-duration: 0.8s;
     animation-timing-function: var(--ease-io);
     z-index: 2;
+  }
+  ::view-transition-old(project-cover) {
+    animation: vt-cover-out 0.8s var(--ease-io) both;
+  }
+  ::view-transition-new(project-cover) {
+    animation: vt-cover-in 0.8s var(--ease-io) both;
   }
   ::view-transition-image-pair(project-cover) {
     overflow: clip;
@@ -564,15 +572,33 @@ html.js:not(.is-ready) [data-reveal] {
 @keyframes vt-out {
   to {
     opacity: 0;
-    transform: translateY(-4vh) scale(0.985);
+    transform: scale(0.985);
+    filter: blur(6px);
   }
 }
 @keyframes vt-in {
   from {
-    clip-path: inset(100% 0 0 0);
+    opacity: 0;
+    transform: scale(1.015);
+    filter: blur(6px);
+  }
+}
+/* the two covers cross over without the default flash (both stay fully opaque while they swap) */
+@keyframes vt-cover-out {
+  0%,
+  45% {
+    opacity: 1;
   }
   to {
-    clip-path: inset(0 0 0 0);
+    opacity: 0;
+  }
+}
+@keyframes vt-cover-in {
+  from {
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
   }
 }
 .vt-cover {

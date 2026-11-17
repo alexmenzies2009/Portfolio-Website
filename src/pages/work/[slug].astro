@@ -89,7 +89,7 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
 
     <div class="pj__cover wrap">
       <button class:list={['pj__coverframe frame vt-cover', !isWide(cover) && 'is-fit']} type="button" data-hero-cover data-lightbox={shots[0].full} data-alt={alt(0)} data-cursor="Zoom" style={box(cover)} aria-label={`Open image 1 of ${total}`}>
-        <Image src={cover} alt={alt(0)} widths={[640, 1024, 1600, 2200, 2560]} sizes="100vw" quality={80} loading="eager" fetchpriority="high" data-parallax="0.05" />
+        <Image src={cover} alt={alt(0)} widths={[640, 1024, 1600, 2200, 2560]} sizes="100vw" quality={80} loading="eager" fetchpriority="high" data-parallax="0.05" style="transform: scale(1.1)" />
       </button>
     </div>
 
@@ -162,9 +162,10 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
 <script>
   import { gsap, reduced } from '../../scripts/motion';
 
-  // the cover starts slightly inset and opens up as it scrolls into place
+  // the cover starts slightly inset and opens up as it scrolls into place. Only when it starts
+  // below the fold: one already on screen (it may just have travelled here from a card) stays put.
   const cover = document.querySelector<HTMLElement>('[data-hero-cover]');
-  if (cover && !reduced) {
+  if (cover && !reduced && cover.getBoundingClientRect().top > innerHeight * 0.9) {
     gsap.fromTo(cover, { scale: 0.9 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: cover, start: 'top 95%', end: 'top 12%', scrub: 0.5 } });
   }
   // left / right arrow keys step through the projects

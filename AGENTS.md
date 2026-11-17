@@ -19,7 +19,7 @@ GSAP + Lenis for motion. See README.md for the content model.
 - `src/data/site.ts`: all non-project content.
 - `src/styles/global.css`: design tokens and shared classes (`.display`, `.mono`, `.pill`, `.bracket`, `.chip`, `.frame`, `.outline`).
 - `src/scripts/motion.ts`: data-attribute driven motion (`data-split`, `data-reveal`, `data-parallax`, `data-kinetic`, `data-fit`, `data-marquee`, `data-magnetic`). `ui.ts`: cursor, accent colour, menu, clock, lightbox. `loader.ts`: the once-per-session intro; `app.ts` starts page animations when its curtain lifts. `wordmark.ts`: the kinetic hero word.
-- Page transitions are native cross-document view transitions; the cover morph is wired by the inline script in `src/layouts/Base.astro` (`data-project-link`, `data-cover`, `data-hero-cover`, class `vt-cover`).
+- Page transitions are native cross-document view transitions; the cover morph is wired by the inline script in `src/layouts/Base.astro` (`data-project-link`, `data-cover`, `data-hero-cover`, class `vt-cover`). The new page is captured at its first paint, before the scripts run, so the element a cover lands on is marked `data-reveal-done` there (skips its reveal, image shown at once), and nothing on screen at load may change size or position once the scripts start.
 
 ## Conventions
 

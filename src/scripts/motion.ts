@@ -39,6 +39,15 @@ const num = (v: string | undefined, fallback: number) => (v === undefined || v =
 // data-accent, or the page's own on a project page), else the palette in turn.
 const PALETTE = ['--c-yellow', '--c-cyan', '--c-violet', '--c-red', '--c-pink', '--c-orange', '--c-green'];
 let nextColor = 0;
+
+// Leaving the page while a clicked card is still opening: finish it, so the cover that travels to
+// the next page is the whole picture, not a half-open block of colour.
+const reveals = new Map<HTMLElement, gsap.core.Timeline>();
+addEventListener('pageswap', () => {
+  reveals.forEach((tl, el) => {
+    if (el.classList.contains('vt-cover') || el.querySelector('.vt-cover') || el.closest('.vt-cover')) tl.progress(1);
+  });
+});
 function revealColor(el: HTMLElement) {
   const own = el.closest<HTMLElement>('[data-accent]')?.dataset.accent || document.documentElement.dataset.accentBase;
   if (own) return own;
@@ -97,11 +106,12 @@ export function initReveals(root: ParentNode = document) {
         },
       });
       gsap.set(el, { backgroundColor: color });
-      tl.fromTo(el, { clipPath: `inset(22% 26% 22% 26% round ${radius * 2.5}px)` }, { clipPath: `inset(0% 0% 0% 0% round ${radius}px)`, duration: 1.5, ease: 'expo.inOut' }, 0);
+      tl.fromTo(el, { clipPath: `inset(22% 26% 22% 26% round ${radius * 2.5}px)` }, { clipPath: `inset(0% 0% 0% 0% round ${radius}px)`, duration: 1.1, ease: 'expo.inOut' }, 0);
       if (inner) {
-        tl.fromTo(inner, { opacity: 0, filter: 'blur(14px)' }, { opacity: 1, filter: 'blur(0px)', duration: 1.1, ease: 'power2.out' }, 0.55);
-        if (!inner.hasAttribute('data-parallax')) tl.fromTo(inner, { scale: 1.28 }, { scale: 1, duration: 2.1, ease: 'expo.out' }, 0.35);
+        tl.fromTo(inner, { opacity: 0, filter: 'blur(14px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out' }, 0.38);
+        if (!inner.hasAttribute('data-parallax')) tl.fromTo(inner, { scale: 1.28 }, { scale: 1, duration: 1.6, ease: 'expo.out' }, 0.22);
       }
+      reveals.set(el, tl);
     } else {
       gsap.fromTo(el, { autoAlpha: 0, y: 36 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'expo.out', delay, scrollTrigger: st });
     }

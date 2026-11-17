@@ -114,6 +114,15 @@ const share = image ? (await getImage({ src: image, width: 1200, height: 630, fi
             sessionStorage.setItem('vt:from', location.pathname);
           } catch (err) {}
         });
+        // The element a cover lands on must be fully visible in the new page's first frame (that is
+        // what the transition captures): skip its reveal animation and show its image at once.
+        var settle = function (el) {
+          el.dataset.revealDone = '1';
+          el.querySelectorAll('img').forEach(function (img) {
+            img.loading = 'eager';
+            img.classList.add('is-loaded');
+          });
+        };
         addEventListener('pagereveal', function (e) {
           var hero = document.querySelector('[data-hero-cover]');
           var restore = function () {
@@ -123,6 +132,7 @@ const share = image ? (await getImage({ src: image, width: 1200, height: 630, fi
             if (hero) hero.classList.add('vt-cover');
           };
           if (!e.viewTransition) return restore();
+          if (hero) settle(hero);
           // a skipped transition (hidden tab, slow load) is fine: the page simply appears
           e.viewTransition.ready.catch(function () {});
           var from = null;
@@ -136,6 +146,7 @@ const share = image ? (await getImage({ src: image, width: 1200, height: 630, fi
               var r = cards[i].getBoundingClientRect();
               if (r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth) {
                 cards[i].classList.add('vt-cover');
+                settle(cards[i]);
                 break;
               }
             }
