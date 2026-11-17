@@ -24,6 +24,9 @@ export const site = {
   playgroundIntro: "Welcome to a new world, a place where I play, a place where I showcase and unleash my creativity in AI. Trust me, it's the future.",
   /** Words that rotate in front of "Designer" on the home page. */
   disciplines: ['Graphic', 'Brand', 'UI+UX', 'Web'],
+  /** The colour each of those words takes on the V2 home page: accents of matching projects
+   * (Pizza Hut Béarnaise, Blue2Purple, Back to School, Beat Invasion). */
+  disciplineAccents: ['#ffcc4d', '#19d3e0', '#a78bff', '#ff4b4b'],
 };
 
 export const nav = [

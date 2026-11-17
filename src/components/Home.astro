@@ -10,10 +10,17 @@ import Pill from '../components/Pill.astro';
 import { site, about } from '../data/site';
 
 interface Props {
-  /** Test version: the hero shows a portrait built from project thumbnails. */
+  /** The hero shows a portrait built from project thumbnails; hovering it lifts tiles out (/backup). */
   mosaic?: boolean;
+  /** The portrait, with projects stepping out of it as cards instead of the hover lens (/, src/scripts/emerge.ts). */
+  emerge?: boolean;
+  /** Page title; leave out for the site's default title. */
+  title?: string;
+  /** Hide the page from search engines (the kept-for-reference versions). */
+  noindex?: boolean;
 }
-const { mosaic = false } = Astro.props;
+const { mosaic: mosaicProp = false, emerge = false, title, noindex = false } = Astro.props;
+const mosaic = mosaicProp || emerge;
 const work = await getWork();
 const featured = work.filter((p) => p.data.featured);
 // what the preview card shows when a thumbnail in the portrait is clicked
@@ -29,6 +36,7 @@ const peek = mosaic
             tools: p.data.tools.join(' · '),
             accent: p.data.accent ?? '',
             cover: (await getImage({ src: p.data.cover, width: 800, format: 'webp', quality: 76 })).src,
+            thumb: emerge ? (await getImage({ src: p.data.cover, width: 400, height: 400, fit: 'cover', format: 'webp', quality: 74 })).src : '',
           },
         ]),
       ),
@@ -44,14 +52,19 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const year = new Date().getFullYear();
 ---
 
-<Base title={mosaic ? undefined : 'Home, classic version'} noindex={!mosaic}>
-  <section class:list={['hero', mosaic && 'hero--mosaic']} data-wordmark-zone>
+<Base title={title} noindex={noindex}>
+  <section
+    class:list={['hero', mosaic && 'hero--mosaic', emerge && 'hero--color']}
+    data-wordmark-zone
+    data-rotate-scope={emerge ? '' : undefined}
+    style={emerge ? `--rotate-color:${site.disciplineAccents[0]}` : undefined}
+  >
     <h1 class="sr-only">{site.name} — graphic designer based in Brussels</h1>
     {
       mosaic ? (
         <>
           <canvas class="mosaic" data-mosaic data-map="/mosaic/map.json" data-atlas="/mosaic/atlas.webp" aria-hidden="true" />
-          <div class="mosaic-tip mono" data-mosaic-tip aria-hidden="true" />
+          {emerge ? <div class="emerge" data-emerge /> : <div class="mosaic-tip mono" data-mosaic-tip aria-hidden="true" />}
           <div class="peek" data-peek role="dialog" aria-label="Project preview" hidden>
             <div class="peek__img frame" data-peek-frame>
               <img data-peek-img alt="" />
@@ -101,7 +114,7 @@ const year = new Date().getFullYear();
 
     <div class="hero__word wrap">
       <p class="hero__kicker mono" aria-hidden="true" data-reveal data-delay="0.85">
-        [<span class="hero__rot"><span data-rotate={JSON.stringify(site.disciplines)}>{site.disciplines[0]}</span></span>]
+        [<span class="hero__rot"><span data-rotate={JSON.stringify(site.disciplines)} data-rotate-colors={emerge ? JSON.stringify(site.disciplineAccents) : undefined}>{site.disciplines[0]}</span></span>]
       </p>
       <p class="wordmark" data-wordmark aria-hidden="true">
         {letters.map((ch) => <span class="wm__l"><span class="wm__i">{ch}</span></span>)}
@@ -196,15 +209,18 @@ const year = new Date().getFullYear();
 <script>
   import { gsap, reduced, finePointer } from '../scripts/motion';
   import { initMosaic } from '../scripts/mosaic';
+  import { initEmerge } from '../scripts/emerge';
 
-  initMosaic();
+  const emergeLayer = document.querySelector('[data-emerge]');
+  const peekInfo = JSON.parse(document.querySelector('[data-peek-data]')?.textContent || '{}');
+  initMosaic({ hover: !emergeLayer }).then((m) => m && emergeLayer && initEmerge(m, peekInfo));
 
   // clicking a thumbnail in the portrait opens a short preview of that project
   const peek = document.querySelector<HTMLElement>('[data-peek]');
   const peekData = document.querySelector('[data-peek-data]');
   if (peek && peekData) {
     type Info = { title: string; meta: string; text: string; tools: string; accent: string; cover: string };
-    const info: Record<string, Info> = JSON.parse(peekData.textContent || '{}');
+    const info: Record<string, Info> = peekInfo;
     const zone = peek.parentElement as HTMLElement;
     const root = document.documentElement;
     const part = <T extends HTMLElement>(name: string) => peek.querySelector<T>(`[data-peek-${name}]`)!;
@@ -216,7 +232,7 @@ const year = new Date().getFullYear();
       root.classList.remove('has-glow');
     };
     zone.addEventListener('mosaic:pick', (e) => {
-      const { slug, x, y } = (e as CustomEvent<{ slug: string; x: number; y: number }>).detail;
+      const { slug, x, y, pad = 40 } = (e as CustomEvent<{ slug: string; x: number; y: number; pad?: number }>).detail;
       const project = info[slug];
       if (!project) return;
       part<HTMLImageElement>('img').src = project.cover;
@@ -230,7 +246,7 @@ const year = new Date().getFullYear();
       peek.hidden = false;
       // beside the click, kept inside the hero
       const w = peek.offsetWidth, h = peek.offsetHeight;
-      const left = x + 40 + w > zone.clientWidth - 16 ? x - 40 - w : x + 40;
+      const left = x + pad + w > zone.clientWidth - 16 ? x - pad - w : x + pad;
       const top = Math.min(Math.max(y - h / 2, 80), Math.max(80, zone.clientHeight - h - 16));
       gsap.set(peek, { x: Math.max(16, left), y: top });
       if (project.accent) {
@@ -308,7 +324,7 @@ const year = new Date().getFullYear();
     min-height: 86svh;
     padding-top: calc(var(--header-h) + clamp(0.5rem, 2vh, 2rem));
   }
-  .hero > :not(.hero__trail):not(canvas):not(.mosaic-tip):not(.peek):not(script) {
+  .hero > :not(.hero__trail):not(canvas):not(.mosaic-tip):not(.emerge):not(.peek):not(script) {
     position: relative;
     z-index: 1;
   }
@@ -393,6 +409,78 @@ const year = new Date().getFullYear();
   }
   .mosaic-tip.is-on {
     opacity: 1;
+  }
+  /* V2: the rotating word, its brackets and the "available" dot take a project colour */
+  .hero--color .hero__kicker {
+    color: color-mix(in srgb, var(--rotate-color) 55%, var(--fg-2));
+    transition: color 0.6s var(--ease-out, ease);
+  }
+  .hero--color .hero__rot {
+    color: var(--rotate-color);
+    transition: color 0.6s var(--ease-out, ease);
+  }
+  .hero--color .hero__avail :global(.pulse),
+  .hero--color .hero__avail :global(.pulse::after) {
+    background: var(--rotate-color);
+    transition: background-color 0.6s var(--ease-out, ease);
+  }
+  /* V2: the project cards that step out of the portrait (built by src/scripts/emerge.ts) */
+  .emerge {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .emerge :global(.emerge__card) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    gap: 0.55rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--fg);
+    text-align: left;
+    pointer-events: auto;
+    cursor: pointer;
+    will-change: transform;
+  }
+  .emerge :global(.emerge__img) {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: calc(var(--radius) * 0.7);
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.5);
+  }
+  .emerge :global(.emerge__img img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .emerge :global(.emerge__card:hover .emerge__img img),
+  .emerge :global(.emerge__card:focus-visible .emerge__img img) {
+    scale: 1.07;
+  }
+  .emerge :global(.emerge__card:focus-visible) {
+    outline: none;
+  }
+  .emerge :global(.emerge__card:focus-visible .emerge__img) {
+    outline: 1px solid var(--fg);
+    outline-offset: 4px;
+  }
+  .emerge :global(.emerge__cap) {
+    display: flex;
+    gap: 0.6em;
+    overflow: hidden;
+    font-size: 0.68rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .emerge :global(.emerge__cap > span:last-child) {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .hero__trail {
     position: absolute;
@@ -690,12 +778,23 @@ const year = new Date().getFullYear();
     }
     .hero__top {
       flex-direction: column-reverse;
+      /* the row stretches down to the wordmark: keep both lines at the top of it */
+      justify-content: flex-end;
       gap: 1.25rem;
     }
     .hero__intro {
       text-align: left;
     }
     .hero__base > span:first-child {
+      display: none;
+    }
+    .emerge :global(.emerge__card) {
+      gap: 0.35rem;
+    }
+    .emerge :global(.emerge__cap) {
+      font-size: 0.5rem;
+    }
+    .emerge :global(.emerge__cap > span:first-child) {
       display: none;
     }
   }

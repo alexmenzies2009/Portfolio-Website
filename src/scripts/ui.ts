@@ -160,7 +160,9 @@ export function initClock() {
   if (abbr) document.querySelectorAll<HTMLElement>('[data-clock-zone]').forEach((el) => (el.textContent = abbr));
 }
 
-/* ---------- words that swap in place: data-rotate='["Graphic","Brand"]' ---------- */
+/* ---------- words that swap in place: data-rotate='["Graphic","Brand"]' ----------
+   Optional data-rotate-colors='["#ffcc4d","#19d3e0"]' gives each word a colour, set as
+   --rotate-color on the nearest [data-rotate-scope] so nearby elements can share it. */
 export function initRotators() {
   if (reduced) return;
   document.querySelectorAll<HTMLElement>('[data-rotate]').forEach((el) => {
@@ -168,6 +170,11 @@ export function initRotators() {
     try {
       words = JSON.parse(el.dataset.rotate || '[]');
     } catch {}
+    let colors: string[] = [];
+    try {
+      colors = JSON.parse(el.dataset.rotateColors || '[]');
+    } catch {}
+    const scope = el.closest<HTMLElement>('[data-rotate-scope]') ?? el;
     if (words.length < 2) return;
     let i = 0;
     setInterval(() => {
@@ -179,6 +186,7 @@ export function initRotators() {
         ease: 'power3.in',
         onComplete: () => {
           el.textContent = words[i];
+          if (colors[i]) scope.style.setProperty('--rotate-color', colors[i]);
           gsap.fromTo(el, { yPercent: 115 }, { yPercent: 0, duration: 0.7, ease: 'expo.out' });
         },
       });

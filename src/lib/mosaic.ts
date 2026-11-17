@@ -1,4 +1,4 @@
-// Build-time data for the "portrait made of projects" hero (/v2):
+// Build-time data for the "portrait made of projects" hero (/ and /backup):
 //   atlas  one image holding a tiny thumbnail of every project image, sorted dark to light
 //   map    which cells of the portrait are part of the person, and how bright each one is
 // Both are regenerated on every build, so new projects join the portrait automatically.

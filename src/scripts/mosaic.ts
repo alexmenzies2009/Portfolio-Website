@@ -3,7 +3,8 @@
 // of the face get bigger, brighter tiles. The tiles fly in from space, turn slightly with the
 // pointer (the face has real depth) and scatter as you scroll away. Hovering loosens the
 // portrait slightly and lifts the few tiles under the cursor out of it, large and well apart,
-// so those projects can be seen and clicked.
+// so those projects can be seen and clicked. (With { hover: false }, the V2 hero, there is no
+// hover lens: emerge.ts lifts whole tiles out of the portrait instead.)
 // Around the portrait, small particles (specks and tiny thumbnails) drift through the dark.
 import { gsap, ScrollTrigger, reduced, finePointer } from './motion';
 
@@ -21,6 +22,8 @@ uniform vec2 uTurn;     // how far the head is turned, -1..1
 uniform vec2 uOffset;   // where the portrait sits in clip space
 uniform float uScale;
 uniform float uCell;     // size of one portrait cell, in half screen-heights
+uniform vec3 uHoles[6];  // gaps left by tiles that stepped out: home x, y and how open (0..1)
+uniform float uHomeCell; // one portrait cell, in home units
 out float vTile;
 out float vShade;
 out float vAlpha;
@@ -34,6 +37,7 @@ const float REACH = 1.2;       // how far across the figure that easing is felt
 const float PICK_CELLS = 2.3;  // tiles within this many cells of the cursor lift out
 const float SPREAD = 13.0;     // how much further apart the lifted tiles end up
 const float GROWN = 8.6;       // their size, in portrait cells
+const float HOLE = 1.8;        // radius of a fully open gap, in portrait cells (keep in step with HOLE_CELLS)
 
 float ease(float x) { return 1.0 - pow(1.0 - clamp(x, 0.0, 1.0), 4.0); }
 
@@ -83,6 +87,17 @@ void main() {
   float lifted = r * (1.0 + SPREAD);
   clip = uMouse + dir * mix(mix(r, eased, on), lifted, pick) / aspect;
   float base = 0.3 + 0.74 * weight;
+  // a project that has stepped out leaves a round gap behind it, which opens and closes from the middle
+  float hole = 0.0;
+  if (dust < 0.5) {
+    for (int k = 0; k < 6; k++) {
+      float open = uHoles[k].z;
+      if (open <= 0.0) continue;
+      float d = length(aHome - uHoles[k].xy) / uHomeCell;
+      hole = max(hole, smoothstep(HOLE * open + 0.7, HOLE * open - 0.7, d));
+    }
+  }
+  base *= 1.0 - hole;
   gl_Position = vec4(clip, mix(0.5 - pick * 0.45, 0.9, dust), 1.0);
   gl_PointSize = uSize * persp * 2.2 * mix(mix(base, GROWN, pick), 0.28 + aSeed.x * 0.85, dust);
   // what stays behind dims a little so the lifted tiles stand out
@@ -91,7 +106,7 @@ void main() {
   float twinkle = 0.5 + 0.5 * sin(uTime * (0.6 + aSeed.y * 1.5) + aSeed.x * 30.0);
   vTile = aTile;
   vShade = mix(0.12 + 1.15 * aLum * aLum, 0.95, uLight) * behind;
-  vAlpha = arrive * (1.0 - smoothstep(0.75, 1.0, uOut)) * mix(1.0, edge * (0.3 + 0.7 * twinkle), dust);
+  vAlpha = (1.0 - hole) * arrive * (1.0 - smoothstep(0.75, 1.0, uOut)) * mix(1.0, edge * (0.3 + 0.7 * twinkle), dust);
   vLens = big;
   vKind = dust;
   vSeed = aSeed.y;
@@ -135,11 +150,34 @@ type MapData = {
   projects: { slug: string; title: string }[];
 };
 
-export async function initMosaic() {
+/** What the portrait lets other scripts do (used by the V2 hero, see emerge.ts). */
+const HOLE_CELLS = 1.8; // radius of the gap a project leaves, in cells (HOLE in the shader)
+
+export type Mosaic = {
+  /** number of portrait cells */
+  count: number;
+  /** brightness of a cell, 0..1 */
+  lum(i: number): number;
+  /** the project whose thumbnail fills a cell */
+  project(i: number): { slug: string; title: string } | null;
+  /** where a cell is drawn right now, in CSS pixels from the canvas's top left, its size, and the
+   * diameter of the gap it leaves when it steps out */
+  locate(i: number): { x: number; y: number; size: number; hole: number };
+  /** every portrait cell's position right now, in CSS pixels, as x, y pairs */
+  outline(): Float32Array;
+  /** the box the portrait occupies, in CSS pixels */
+  bounds(): { left: number; top: number; right: number; bottom: number };
+  /** open a gap around a cell (amount 0..1) while its project is out of the picture; slot 0-5 */
+  hide(slot: number, cell: number, amount: number): void;
+  /** how far the portrait has assembled (in) and been scrolled away (out), 0..1 */
+  progress(): { in: number; out: number };
+};
+
+export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Promise<Mosaic | null> {
   const canvas = document.querySelector<HTMLCanvasElement>('canvas[data-mosaic]');
-  if (!canvas) return;
+  if (!canvas) return null;
   const gl = canvas.getContext('webgl2', { antialias: false, alpha: true, premultipliedAlpha: false });
-  if (!gl) return;
+  if (!gl) return null;
 
   const [map, image] = await Promise.all([
     fetch(canvas.dataset.map || '').then((r) => r.json() as Promise<MapData>),
@@ -150,7 +188,7 @@ export async function initMosaic() {
       img.src = canvas.dataset.atlas || '';
     }),
   ]).catch(() => [null, null] as const);
-  if (!map || !image) return;
+  if (!map || !image) return null;
 
   const shader = (type: number, src: string) => {
     const s = gl.createShader(type)!;
@@ -162,7 +200,7 @@ export async function initMosaic() {
   gl.attachShader(program, shader(gl.VERTEX_SHADER, VERT));
   gl.attachShader(program, shader(gl.FRAGMENT_SHADER, FRAG));
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null;
   gl.useProgram(program);
 
   // one point per portrait cell, followed by the background particles
@@ -219,7 +257,9 @@ export async function initMosaic() {
 
   const u = (name: string) => gl.getUniformLocation(program, name);
   gl.uniform2f(u('uGrid'), map.atlas.cols, map.atlas.rows);
-  const uRes = u('uRes'), uTime = u('uTime'), uIn = u('uIn'), uOut = u('uOut'), uSize = u('uSize'), uLight = u('uLight'), uMouse = u('uMouse'), uTurn = u('uTurn'), uLens = u('uLens'), uOffset = u('uOffset'), uScale = u('uScale'), uCell = u('uCell');
+  const uRes = u('uRes'), uTime = u('uTime'), uIn = u('uIn'), uOut = u('uOut'), uSize = u('uSize'), uLight = u('uLight'), uMouse = u('uMouse'), uTurn = u('uTurn'), uLens = u('uLens'), uOffset = u('uOffset'), uScale = u('uScale'), uCell = u('uCell'), uHoles = u('uHoles');
+  const holes = new Float32Array(6 * 3);
+  gl.uniform1f(u('uHomeCell'), 1 / half);
 
   let width = 1, height = 1, dpr = 1, portrait = 1, offsetY = -0.04;
   const resize = () => {
@@ -282,22 +322,29 @@ export async function initMosaic() {
   const hero = canvas.parentElement as HTMLElement;
   const tip = hero.querySelector<HTMLElement>('[data-mosaic-tip]');
   const SCALE = 0.94;
+  // where cell i lands in clip space (the shader's projection, without the small breathing)
+  const P = { x: 0, y: 0, persp: 0 };
+  const projectCell = (i: number, tx = turn.x, ty = turn.y) => {
+    const ry = tx * 0.38, rx = -ty * 0.22;
+    const cy = Math.cos(ry), sy = Math.sin(ry), cx = Math.cos(rx), sx = Math.sin(rx);
+    const hx = data[i * STRIDE], hy = data[i * STRIDE + 1], hz = (data[i * STRIDE + 2] - 0.45) * 0.42;
+    const x1 = cy * hx + sy * hz, z1 = -sy * hx + cy * hz;
+    const y2 = cx * hy + sx * z1, z2 = -sx * hy + cx * z1;
+    P.persp = (1 / (2.2 - z2)) * 2.2 * SCALE * portrait;
+    P.x = (x1 * P.persp) / (width / height);
+    P.y = y2 * P.persp + offsetY;
+    return P;
+  };
   const pick = () => {
     if (away || state.in < 0.97 || state.out > 0.08 || mouse.x < -1.2) return -1;
-    const scale = SCALE * portrait;
-    const ry = turn.x * 0.38, rx = -turn.y * 0.22;
-    const cy = Math.cos(ry), sy = Math.sin(ry), cx = Math.cos(rx), sx = Math.sin(rx);
     const ratio = width / height;
     let best = -1;
-    let bestD = (1.6 * scale * 2) / Math.max(map.cols, map.rows); // must be within about 1.6 cells
+    let bestD = (1.6 * SCALE * portrait * 2) / Math.max(map.cols, map.rows); // must be within about 1.6 cells
     bestD *= bestD;
     for (let i = 0; i < n; i++) {
-      const hx = data[i * STRIDE], hy = data[i * STRIDE + 1], hz = (data[i * STRIDE + 2] - 0.45) * 0.42;
-      const x1 = cy * hx + sy * hz, z1 = -sy * hx + cy * hz;
-      const y2 = cx * hy + sx * z1, z2 = -sx * hy + cx * z1;
-      const persp = (1 / (2.2 - z2)) * 2.2 * scale;
-      const dx = ((x1 * persp) / ratio - mouse.x) * ratio;
-      const dy = y2 * persp + offsetY - mouse.y;
+      const c = projectCell(i);
+      const dx = (c.x - mouse.x) * ratio;
+      const dy = c.y - mouse.y;
       const d = dx * dx + dy * dy;
       if (d < bestD) {
         bestD = d;
@@ -308,7 +355,7 @@ export async function initMosaic() {
   };
   const projectOf = (i: number) => (i < 0 ? null : map.projects[map.tiles[data[i * STRIDE + 3]]] ?? null);
   let tipX = 0, tipY = 0, shownSlug = '';
-  if (finePointer && !reduced) {
+  if (hover && finePointer && !reduced) {
     hero.addEventListener('pointermove', () => (away = false));
     hero.addEventListener('pointerleave', () => (away = true));
     hero.addEventListener('click', (e) => {
@@ -330,12 +377,12 @@ export async function initMosaic() {
     const inside = Math.abs(mouse.tx) <= 1.2 && Math.abs(mouse.ty) <= 1.2;
     turn.x += ((inside ? mouse.tx : 0) - turn.x) * 0.04;
     turn.y += ((inside ? mouse.ty : 0) - turn.y) * 0.04;
-    hot = finePointer && !reduced ? pick() : -1;
+    hot = hover && finePointer && !reduced ? pick() : -1;
     // it opens fully only once the pointer settles
     const settle = Math.min(1, Math.max(0.3, 1 - lag * 2.2));
     lens += ((hot >= 0 ? settle : 0) - lens) * 0.05;
     const project = projectOf(hot);
-    hero.style.cursor = project ? 'pointer' : '';
+    if (hover) hero.style.cursor = project ? 'pointer' : '';
     if (tip) {
       tip.classList.toggle('is-on', !!project);
       if (project && project.slug !== shownSlug) {
@@ -349,6 +396,7 @@ export async function initMosaic() {
     }
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.uniform1f(uLens, lens);
+    gl.uniform3fv(uHoles, holes);
     gl.uniform2f(uRes, width, height);
     gl.uniform1f(uTime, reduced ? 0 : time);
     gl.uniform1f(uIn, state.in);
@@ -363,4 +411,45 @@ export async function initMosaic() {
     gl.uniform1f(uSize, ((height * SCALE * portrait) / Math.max(map.cols, map.rows)) * 1.02);
     gl.drawArrays(gl.POINTS, 0, n + DUST);
   });
+
+  const projectOfCell = (i: number) => map.projects[map.tiles[data[i * STRIDE + 3]]] ?? null;
+  return {
+    count: n,
+    lum: (i) => data[i * STRIDE + 2],
+    project: projectOfCell,
+    locate(i) {
+      const c = projectCell(i);
+      const pitch = (canvas.clientHeight / Math.max(map.cols, map.rows)) * c.persp;
+      const size = pitch * 1.02 * (0.3 + 0.74 * data[i * STRIDE + 2]);
+      return { x: ((c.x + 1) / 2) * canvas.clientWidth, y: ((1 - c.y) / 2) * canvas.clientHeight, size, hole: pitch * 2 * HOLE_CELLS };
+    },
+    outline() {
+      const out = new Float32Array(n * 2);
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      for (let i = 0; i < n; i++) {
+        const c = projectCell(i);
+        out[i * 2] = ((c.x + 1) / 2) * W;
+        out[i * 2 + 1] = ((1 - c.y) / 2) * H;
+      }
+      return out;
+    },
+    bounds() {
+      let l = Infinity, t = -Infinity, r = -Infinity, b = Infinity;
+      for (let i = 0; i < n; i++) {
+        const c = projectCell(i, 0, 0);
+        l = Math.min(l, c.x);
+        r = Math.max(r, c.x);
+        t = Math.max(t, c.y);
+        b = Math.min(b, c.y);
+      }
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      return { left: ((l + 1) / 2) * W, right: ((r + 1) / 2) * W, top: ((1 - t) / 2) * H, bottom: ((1 - b) / 2) * H };
+    },
+    hide(slot, cell, amount) {
+      holes[slot * 3] = data[cell * STRIDE];
+      holes[slot * 3 + 1] = data[cell * STRIDE + 1];
+      holes[slot * 3 + 2] = amount;
+    },
+    progress: () => ({ in: state.in, out: state.out }),
+  };
 }

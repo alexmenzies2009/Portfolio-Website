@@ -1,7 +1,10 @@
 ---
-// Home page. The hero is the portrait built from project thumbnails.
-// The earlier hero (contour map + image trail) is kept at /classic: see src/pages/classic.astro.
+// Home page. The hero is the portrait built from project thumbnails, with projects stepping out
+// of it as clickable cards (src/scripts/emerge.ts).
+// Earlier versions are kept, unlinked and hidden from search engines:
+//   /backup   the same portrait with the hover lens instead of the cards (src/pages/backup.astro)
+//   /classic  the contour map and image trail (src/pages/classic.astro)
 import Home from '../components/Home.astro';
 ---
 
-<Home mosaic />
+<Home emerge />

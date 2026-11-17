@@ -73,7 +73,7 @@ The "About" text goes here. Leave a blank line between paragraphs.
 ```
 
 That is all. Nothing else needs to be registered: the project shows up on `/work`, gets its own page,
-and joins the portrait on `/v2`.
+and joins the portrait on the home page.
 
 Optional lines for the top part:
 
@@ -89,13 +89,18 @@ To remove a project, delete its folder.
 (name, one-line description, type, tools), and ask Claude to "add this project". The steps above
 are all it needs to do.
 
-## The two home pages
+## The home page and its backups
 
 - `/` is the home page: the hero is your portrait built from thumbnails of every project image.
-  Hovering it magnifies the thumbnails under the cursor, and clicking one opens that project.
-- `/classic` is the earlier hero (contour map and image trail), kept for reference. It is not
-  linked from the menu and is hidden from search engines. To switch back, change `<Home mosaic />`
-  to `<Home />` in `src/pages/index.astro`. test
+  Every few seconds a project steps out of the portrait as a small card, floats beside it and
+  later flies back into the gap it left. Clicking a card opens a preview of that project.
+- `/backup` is the previous home page: the same portrait, where hovering magnifies the thumbnails
+  under the cursor and clicking one opens that project. To switch back, change `<Home emerge />`
+  to `<Home mosaic />` in `src/pages/index.astro`.
+- `/classic` is the earliest hero (contour map and image trail). To use it, change the line in
+  `src/pages/index.astro` to `<Home />`.
+
+Both backups are not linked from the menu and are hidden from search engines.
 
 
 ## Contact form

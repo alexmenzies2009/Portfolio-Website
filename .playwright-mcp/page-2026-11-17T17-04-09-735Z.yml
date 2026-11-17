@@ -1,0 +1,330 @@
+- generic [active] [ref=f23e1]:
+  - link "Skip to content" [ref=f23e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner:
+    - link "Alex Menzies — home" [ref=f23e3] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f23e7]:
+      - button "Switch to light mode" [ref=f23e8] [cursor=pointer]:
+        - generic [ref=f23e10]: light
+      - button "Open menu" [ref=f23e11] [cursor=pointer]:
+        - generic [ref=f23e12]: Menu
+  - main [ref=f23e16]:
+    - generic [ref=f23e17]:
+      - heading "Alex Menzies — graphic designer based in Brussels" [level=1] [ref=f23e18]
+      - text: "[ ]"
+      - generic [ref=f23e19]:
+        - paragraph [ref=f23e20]: Available for work
+        - paragraph [ref=f23e22]:
+          - generic [aria-hidden] [ref=f23e24]: Graphic designer based in
+          - generic [aria-hidden] [ref=f23e26]: Brussels — web design,
+          - generic [aria-hidden] [ref=f23e28]: illustration & visuals.
+      - generic [ref=f23e29]:
+        - paragraph [aria-hidden] [ref=f23e30]:
+          - text: "["
+          - generic [ref=f23e31]: Graphic
+          - text: "]"
+        - paragraph [aria-hidden] [ref=f23e33]:
+          - generic [ref=f23e34]: D
+          - generic [ref=f23e36]: E
+          - generic [ref=f23e38]: S
+          - generic [ref=f23e40]: I
+          - generic [ref=f23e42]: G
+          - generic [ref=f23e44]: "N"
+          - generic [ref=f23e46]: E
+          - generic [ref=f23e48]: R
+    - region "A few projects" [ref=f23e50]:
+      - list [ref=f23e51]:
+        - listitem [ref=f23e52]:
+          - link "10 Astroflame" [ref=f23e53] [cursor=pointer]:
+            - /url: /work/astroflame/
+            - generic [ref=f23e55]:
+              - generic [ref=f23e56]: "10"
+              - generic [ref=f23e57]: Astroflame
+        - listitem [ref=f23e58]:
+          - link "01 Blue2Purple" [ref=f23e59] [cursor=pointer]:
+            - /url: /work/blue2purple/
+            - generic [ref=f23e61]:
+              - generic [ref=f23e62]: "01"
+              - generic [ref=f23e63]: Blue2Purple
+        - listitem [ref=f23e64]:
+          - link "13 The Joker" [ref=f23e65] [cursor=pointer]:
+            - /url: /work/the-joker/
+            - generic [ref=f23e67]:
+              - generic [ref=f23e68]: "13"
+              - generic [ref=f23e69]: The Joker
+        - listitem [ref=f23e70]:
+          - link "25 Beat Invasion" [ref=f23e71] [cursor=pointer]:
+            - /url: /work/beat-invasion/
+            - generic [ref=f23e73]:
+              - generic [ref=f23e74]: "25"
+              - generic [ref=f23e75]: Beat Invasion
+        - listitem [ref=f23e76]:
+          - link "11 F1" [ref=f23e77] [cursor=pointer]:
+            - /url: /work/f1/
+            - generic [ref=f23e79]:
+              - generic [ref=f23e80]: "11"
+              - generic [ref=f23e81]: F1
+        - listitem [ref=f23e82]:
+          - link "03 HairSpace" [ref=f23e83] [cursor=pointer]:
+            - /url: /work/hairspace/
+            - generic [ref=f23e85]:
+              - generic [ref=f23e86]: "03"
+              - generic [ref=f23e87]: HairSpace
+        - listitem [ref=f23e88]:
+          - link "09 The test" [ref=f23e89] [cursor=pointer]:
+            - /url: /work/ai/
+            - generic [ref=f23e91]:
+              - generic [ref=f23e92]: "09"
+              - generic [ref=f23e93]: The test
+        - listitem [ref=f23e94]:
+          - link "04 The Batman" [ref=f23e95] [cursor=pointer]:
+            - /url: /work/the-batman/
+            - generic [ref=f23e97]:
+              - generic [ref=f23e98]: "04"
+              - generic [ref=f23e99]: The Batman
+        - listitem [ref=f23e100]:
+          - link "14 Spacecat" [ref=f23e101] [cursor=pointer]:
+            - /url: /work/spacecat/
+            - generic [ref=f23e103]:
+              - generic [ref=f23e104]: "14"
+              - generic [ref=f23e105]: Spacecat
+        - listitem [ref=f23e106]:
+          - link "23 Veepee" [ref=f23e107] [cursor=pointer]:
+            - /url: /work/back-to-school/
+            - generic [ref=f23e109]:
+              - generic [ref=f23e110]: "23"
+              - generic [ref=f23e111]: Veepee
+        - listitem [ref=f23e112]:
+          - link "12 Neon Rider" [ref=f23e113] [cursor=pointer]:
+            - /url: /work/neon-rider/
+            - generic [ref=f23e115]:
+              - generic [ref=f23e116]: "12"
+              - generic [ref=f23e117]: Neon Rider
+        - listitem [ref=f23e118]:
+          - link "18 Noval" [ref=f23e119] [cursor=pointer]:
+            - /url: /work/noval/
+            - generic [ref=f23e121]:
+              - generic [ref=f23e122]: "18"
+              - generic [ref=f23e123]: Noval
+        - listitem [aria-hidden] [ref=f23e124]:
+          - link [ref=f23e125] [cursor=pointer]:
+            - /url: /work/astroflame/
+            - generic [ref=f23e127]:
+              - generic [ref=f23e128]: "10"
+              - generic [ref=f23e129]: Astroflame
+        - listitem [aria-hidden] [ref=f23e130]:
+          - link [ref=f23e131] [cursor=pointer]:
+            - /url: /work/blue2purple/
+            - generic [ref=f23e133]:
+              - generic [ref=f23e134]: "01"
+              - generic [ref=f23e135]: Blue2Purple
+        - listitem [aria-hidden] [ref=f23e136]:
+          - link [ref=f23e137] [cursor=pointer]:
+            - /url: /work/the-joker/
+            - generic [ref=f23e139]:
+              - generic [ref=f23e140]: "13"
+              - generic [ref=f23e141]: The Joker
+        - listitem [aria-hidden] [ref=f23e142]:
+          - link [ref=f23e143] [cursor=pointer]:
+            - /url: /work/beat-invasion/
+            - generic [ref=f23e145]:
+              - generic [ref=f23e146]: "25"
+              - generic [ref=f23e147]: Beat Invasion
+        - listitem [aria-hidden] [ref=f23e148]:
+          - link [ref=f23e149] [cursor=pointer]:
+            - /url: /work/f1/
+            - generic [ref=f23e151]:
+              - generic [ref=f23e152]: "11"
+              - generic [ref=f23e153]: F1
+        - listitem [aria-hidden] [ref=f23e154]:
+          - link [ref=f23e155] [cursor=pointer]:
+            - /url: /work/hairspace/
+            - generic [ref=f23e157]:
+              - generic [ref=f23e158]: "03"
+              - generic [ref=f23e159]: HairSpace
+        - listitem [aria-hidden] [ref=f23e160]:
+          - link [ref=f23e161] [cursor=pointer]:
+            - /url: /work/ai/
+            - generic [ref=f23e163]:
+              - generic [ref=f23e164]: "09"
+              - generic [ref=f23e165]: The test
+        - listitem [aria-hidden] [ref=f23e166]:
+          - link [ref=f23e167] [cursor=pointer]:
+            - /url: /work/the-batman/
+            - generic [ref=f23e169]:
+              - generic [ref=f23e170]: "04"
+              - generic [ref=f23e171]: The Batman
+        - listitem [aria-hidden] [ref=f23e172]:
+          - link [ref=f23e173] [cursor=pointer]:
+            - /url: /work/spacecat/
+            - generic [ref=f23e175]:
+              - generic [ref=f23e176]: "14"
+              - generic [ref=f23e177]: Spacecat
+        - listitem [aria-hidden] [ref=f23e178]:
+          - link [ref=f23e179] [cursor=pointer]:
+            - /url: /work/back-to-school/
+            - generic [ref=f23e181]:
+              - generic [ref=f23e182]: "23"
+              - generic [ref=f23e183]: Veepee
+        - listitem [aria-hidden] [ref=f23e184]:
+          - link [ref=f23e185] [cursor=pointer]:
+            - /url: /work/neon-rider/
+            - generic [ref=f23e187]:
+              - generic [ref=f23e188]: "12"
+              - generic [ref=f23e189]: Neon Rider
+        - listitem [aria-hidden] [ref=f23e190]:
+          - link [ref=f23e191] [cursor=pointer]:
+            - /url: /work/noval/
+            - generic [ref=f23e193]:
+              - generic [ref=f23e194]: "18"
+              - generic [ref=f23e195]: Noval
+    - paragraph [ref=f23e198]:
+      - generic [aria-hidden] [ref=f23e199]: Hi!
+      - generic [aria-hidden] [ref=f23e200]: I'm
+      - generic [aria-hidden] [ref=f23e201]: Alex,
+      - generic [aria-hidden] [ref=f23e202]: I'm
+      - generic [aria-hidden] [ref=f23e203]: a
+      - generic [aria-hidden] [ref=f23e204]: young
+      - generic [aria-hidden] [ref=f23e205]: Graphic
+      - generic [aria-hidden] [ref=f23e206]: designer
+      - generic [aria-hidden] [ref=f23e207]: based
+      - generic [aria-hidden] [ref=f23e208]: in
+      - generic [aria-hidden] [ref=f23e209]: Brussels
+      - generic [aria-hidden] [ref=f23e210]: specialising
+      - generic [aria-hidden] [ref=f23e211]: in
+      - generic [aria-hidden] [ref=f23e212]: web
+      - generic [aria-hidden] [ref=f23e213]: design,
+      - generic [aria-hidden] [ref=f23e214]: illustration
+      - generic [aria-hidden] [ref=f23e215]: and
+      - generic [aria-hidden] [ref=f23e216]: visuals.
+    - list [ref=f23e218]:
+      - listitem [ref=f23e219]:
+        - generic [ref=f23e220]: Graphics
+      - listitem [ref=f23e221]:
+        - generic [ref=f23e222]: Branding
+      - listitem [ref=f23e223]:
+        - generic [ref=f23e224]: UI+UX
+      - listitem [ref=f23e225]:
+        - generic [ref=f23e226]: Web Design
+    - generic [ref=f23e227]:
+      - generic [ref=f23e228]:
+        - heading "Selected work" [level=2] [ref=f23e229]:
+          - generic [aria-hidden] [ref=f23e230]:
+            - generic [aria-hidden] [ref=f23e232]: S
+            - generic [aria-hidden] [ref=f23e234]: e
+            - generic [aria-hidden] [ref=f23e236]: l
+            - generic [aria-hidden] [ref=f23e238]: e
+            - generic [aria-hidden] [ref=f23e240]: c
+            - generic [aria-hidden] [ref=f23e242]: t
+            - generic [aria-hidden] [ref=f23e244]: e
+            - generic [aria-hidden] [ref=f23e246]: d
+          - generic [aria-hidden] [ref=f23e247]:
+            - generic [aria-hidden] [ref=f23e249]: w
+            - generic [aria-hidden] [ref=f23e251]: o
+            - generic [aria-hidden] [ref=f23e253]: r
+            - generic [aria-hidden] [ref=f23e255]: k
+        - paragraph [ref=f23e257]:
+          - generic [aria-hidden] [ref=f23e259]: Get a glimpse of some of my best and
+          - generic [aria-hidden] [ref=f23e261]: selected work! If you want to see more, don’t
+          - generic [aria-hidden] [ref=f23e263]: hesitate to see.
+      - generic [ref=f23e266]:
+        - link "Branding 01 Blue2Purple Illustrator · Photoshop" [ref=f23e267] [cursor=pointer]:
+          - /url: /work/blue2purple/
+          - generic [ref=f23e268]: Branding
+          - generic [ref=f23e272]:
+            - generic [ref=f23e273]: "01"
+            - heading "Blue2Purple" [level=3] [ref=f23e274]
+            - generic [ref=f23e275]: Illustrator · Photoshop
+        - link "Design & Animation 02 Luminus Illustrator · Photoshop" [ref=f23e276] [cursor=pointer]:
+          - /url: /work/luminus/
+          - generic [ref=f23e277]: Design & Animation
+          - generic [ref=f23e281]:
+            - generic [ref=f23e282]: "02"
+            - heading "Luminus" [level=3] [ref=f23e283]
+            - generic [ref=f23e284]: Illustrator · Photoshop
+        - link "Branding 03 HairSpace Illustrator · Photoshop" [ref=f23e285] [cursor=pointer]:
+          - /url: /work/hairspace/
+          - generic [ref=f23e286]: Branding
+          - generic [ref=f23e290]:
+            - generic [ref=f23e291]: "03"
+            - heading "HairSpace" [level=3] [ref=f23e292]
+            - generic [ref=f23e293]: Illustrator · Photoshop
+        - link "Design 04 The Batman Photoshop" [ref=f23e294] [cursor=pointer]:
+          - /url: /work/the-batman/
+          - generic [ref=f23e295]: Design
+          - generic [ref=f23e299]:
+            - generic [ref=f23e300]: "04"
+            - heading "The Batman" [level=3] [ref=f23e301]
+            - generic [ref=f23e302]: Photoshop
+        - link "43 projects See all work" [ref=f23e303] [cursor=pointer]:
+          - /url: /work/
+          - generic [ref=f23e304]: 43 projects
+          - generic [ref=f23e305]: See all work
+    - generic [ref=f23e306]:
+      - heading "Have a cool project?" [level=2] [ref=f23e307]:
+        - generic [ref=f23e308]: Have a cool
+        - generic [ref=f23e309]: project?
+      - link "Let's talk" [ref=f23e310] [cursor=pointer]:
+        - /url: /contact/
+    - generic [aria-hidden]:
+      - generic: "01"
+      - generic: "03"
+  - contentinfo [ref=f23e315]:
+    - generic [ref=f23e316]:
+      - generic [ref=f23e317]:
+        - paragraph [ref=f23e318]: Sitemap
+        - list [ref=f23e319]:
+          - listitem [ref=f23e320]:
+            - link "Work" [ref=f23e321] [cursor=pointer]:
+              - /url: /work/
+          - listitem [ref=f23e322]:
+            - link "About" [ref=f23e323] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f23e324]:
+            - link "Playground" [ref=f23e325] [cursor=pointer]:
+              - /url: /playground/
+          - listitem [ref=f23e326]:
+            - link "Stack" [ref=f23e327] [cursor=pointer]:
+              - /url: /stack/
+          - listitem [ref=f23e328]:
+            - link "Contact" [ref=f23e329] [cursor=pointer]:
+              - /url: /contact/
+      - generic [ref=f23e330]:
+        - paragraph [ref=f23e331]: Elsewhere
+        - list [ref=f23e332]:
+          - listitem [ref=f23e333]:
+            - link "LinkedIn" [ref=f23e334] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/alex-menzies
+          - listitem [ref=f23e335]:
+            - link "Instagram" [ref=f23e336] [cursor=pointer]:
+              - /url: https://www.instagram.com/mnzsalex/
+          - listitem [ref=f23e337]:
+            - link "Facebook" [ref=f23e338] [cursor=pointer]:
+              - /url: https://www.facebook.com/alex.menzies.965/
+          - listitem [ref=f23e339]:
+            - link "Behance" [ref=f23e340] [cursor=pointer]:
+              - /url: https://www.behance.net/alexmenzies1
+      - generic [ref=f23e341]:
+        - paragraph [ref=f23e342]: Local time
+        - paragraph [ref=f23e343]: 18:04:08
+        - paragraph [ref=f23e344]: "[ Brussels, Belgium ]"
+        - paragraph [ref=f23e345]: Available for work
+    - generic [ref=f23e349]:
+      - generic [aria-hidden] [ref=f23e350]:
+        - generic [aria-hidden] [ref=f23e352]: A
+        - generic [aria-hidden] [ref=f23e354]: l
+        - generic [aria-hidden] [ref=f23e356]: e
+        - generic [aria-hidden] [ref=f23e358]: x
+      - generic [aria-hidden] [ref=f23e359]:
+        - generic [aria-hidden] [ref=f23e361]: M
+        - generic [aria-hidden] [ref=f23e363]: e
+        - generic [aria-hidden] [ref=f23e365]: "n"
+        - generic [aria-hidden] [ref=f23e367]: z
+        - generic [aria-hidden] [ref=f23e369]: i
+        - generic [aria-hidden] [ref=f23e371]: e
+        - generic [aria-hidden] [ref=f23e373]: s
+    - generic [ref=f23e374]:
+      - generic [ref=f23e375]: © 2026 Alex Menzies
+      - link "[ Back to top ]" [ref=f23e376] [cursor=pointer]:
+        - /url: "#top"

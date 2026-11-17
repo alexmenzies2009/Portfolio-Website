@@ -1,0 +1,190 @@
+- generic [active] [ref=f20e1]:
+  - link "Skip to content" [ref=f20e11] [cursor=pointer]:
+    - /url: "#main"
+  - banner:
+    - link "Alex Menzies — home" [ref=f20e12] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f20e16]:
+      - button "Switch to light mode" [ref=f20e17] [cursor=pointer]:
+        - generic [ref=f20e19]: light
+      - button "Open menu" [ref=f20e20] [cursor=pointer]:
+        - generic [ref=f20e21]: Menu
+  - main [ref=f20e25]:
+    - generic [ref=f20e26]:
+      - heading "Alex Menzies — graphic designer based in Brussels" [level=1] [ref=f20e27]
+      - text: "[ ]"
+      - paragraph [aria-hidden] [ref=f20e30]:
+        - generic [ref=f20e31]: D
+        - generic [ref=f20e33]: E
+        - generic [ref=f20e35]: S
+        - generic [ref=f20e37]: I
+        - generic [ref=f20e39]: G
+        - generic [ref=f20e41]: "N"
+        - generic [ref=f20e43]: E
+        - generic [ref=f20e45]: R
+    - region "A few projects" [ref=f20e47]:
+      - list [ref=f20e48]:
+        - listitem [ref=f20e49]:
+          - link "10 Astroflame" [ref=f20e50] [cursor=pointer]:
+            - /url: /work/astroflame/
+            - generic [ref=f20e52]:
+              - generic [ref=f20e53]: "10"
+              - generic [ref=f20e54]: Astroflame
+        - listitem [ref=f20e55]:
+          - link "01 Blue2Purple" [ref=f20e56] [cursor=pointer]:
+            - /url: /work/blue2purple/
+            - generic [ref=f20e58]:
+              - generic [ref=f20e59]: "01"
+              - generic [ref=f20e60]: Blue2Purple
+        - listitem [ref=f20e61]:
+          - link "13 The Joker" [ref=f20e62] [cursor=pointer]:
+            - /url: /work/the-joker/
+            - generic [ref=f20e64]:
+              - generic [ref=f20e65]: "13"
+              - generic [ref=f20e66]: The Joker
+        - listitem [ref=f20e67]:
+          - link "25 Beat Invasion" [ref=f20e68] [cursor=pointer]:
+            - /url: /work/beat-invasion/
+            - generic [ref=f20e70]:
+              - generic [ref=f20e71]: "25"
+              - generic [ref=f20e72]: Beat Invasion
+        - listitem [ref=f20e73]:
+          - link "11 F1" [ref=f20e74] [cursor=pointer]:
+            - /url: /work/f1/
+            - generic [ref=f20e76]:
+              - generic [ref=f20e77]: "11"
+              - generic [ref=f20e78]: F1
+        - listitem [ref=f20e79]:
+          - link "03 HairSpace" [ref=f20e80] [cursor=pointer]:
+            - /url: /work/hairspace/
+            - generic [ref=f20e82]:
+              - generic [ref=f20e83]: "03"
+              - generic [ref=f20e84]: HairSpace
+        - listitem [ref=f20e85]:
+          - link "09 The test" [ref=f20e86] [cursor=pointer]:
+            - /url: /work/ai/
+            - generic [ref=f20e88]:
+              - generic [ref=f20e89]: "09"
+              - generic [ref=f20e90]: The test
+        - listitem [ref=f20e91]:
+          - link "04 The Batman" [ref=f20e92] [cursor=pointer]:
+            - /url: /work/the-batman/
+            - generic [ref=f20e94]:
+              - generic [ref=f20e95]: "04"
+              - generic [ref=f20e96]: The Batman
+        - listitem [ref=f20e97]:
+          - link "14 Spacecat" [ref=f20e98] [cursor=pointer]:
+            - /url: /work/spacecat/
+            - generic [ref=f20e100]:
+              - generic [ref=f20e101]: "14"
+              - generic [ref=f20e102]: Spacecat
+        - listitem [ref=f20e103]:
+          - link "23 Veepee" [ref=f20e104] [cursor=pointer]:
+            - /url: /work/back-to-school/
+            - generic [ref=f20e106]:
+              - generic [ref=f20e107]: "23"
+              - generic [ref=f20e108]: Veepee
+        - listitem [ref=f20e109]:
+          - link "12 Neon Rider" [ref=f20e110] [cursor=pointer]:
+            - /url: /work/neon-rider/
+            - generic [ref=f20e112]:
+              - generic [ref=f20e113]: "12"
+              - generic [ref=f20e114]: Neon Rider
+        - listitem [ref=f20e115]:
+          - link "18 Noval" [ref=f20e116] [cursor=pointer]:
+            - /url: /work/noval/
+            - generic [ref=f20e118]:
+              - generic [ref=f20e119]: "18"
+              - generic [ref=f20e120]: Noval
+    - paragraph [ref=f20e123]: Hi! I'm Alex, I'm a young Graphic designer based in Brussels specialising in web design, illustration and visuals.
+    - list [ref=f20e125]:
+      - listitem [ref=f20e126]:
+        - generic [ref=f20e128]: Graphics
+      - listitem [ref=f20e129]:
+        - generic [ref=f20e130]: Branding
+      - listitem [ref=f20e132]:
+        - generic [ref=f20e134]: UI+UX
+      - listitem [ref=f20e135]:
+        - generic [ref=f20e136]: Web Design
+    - generic [ref=f20e143]:
+      - link "01 Blue2Purple Illustrator · Photoshop" [ref=f20e144] [cursor=pointer]:
+        - /url: /work/blue2purple/
+        - generic [ref=f20e146]:
+          - generic [ref=f20e147]: "01"
+          - heading "Blue2Purple" [level=3] [ref=f20e148]
+          - generic [ref=f20e149]: Illustrator · Photoshop
+      - link "02 Luminus Illustrator · Photoshop" [ref=f20e150] [cursor=pointer]:
+        - /url: /work/luminus/
+        - generic [ref=f20e152]:
+          - generic [ref=f20e153]: "02"
+          - heading "Luminus" [level=3] [ref=f20e154]
+          - generic [ref=f20e155]: Illustrator · Photoshop
+      - link "03 HairSpace Illustrator · Photoshop" [ref=f20e156] [cursor=pointer]:
+        - /url: /work/hairspace/
+        - generic [ref=f20e158]:
+          - generic [ref=f20e159]: "03"
+          - heading "HairSpace" [level=3] [ref=f20e160]
+          - generic [ref=f20e161]: Illustrator · Photoshop
+      - link "04 The Batman Photoshop" [ref=f20e162] [cursor=pointer]:
+        - /url: /work/the-batman/
+        - generic [ref=f20e164]:
+          - generic [ref=f20e165]: "04"
+          - heading "The Batman" [level=3] [ref=f20e166]
+          - generic [ref=f20e167]: Photoshop
+      - link "43 projects See all work" [ref=f20e168] [cursor=pointer]:
+        - /url: /work/
+        - generic [ref=f20e169]: 43 projects
+        - generic [ref=f20e170]: See all work
+    - generic [ref=f20e171]:
+      - heading "Have a cool project?" [level=2] [ref=f20e172]:
+        - generic [ref=f20e173]: Have a cool
+        - generic [ref=f20e174]: project?
+      - link "Let's talk" [ref=f20e175] [cursor=pointer]:
+        - /url: /contact/
+    - generic [aria-hidden]:
+      - generic: "01"
+      - generic: "03"
+  - contentinfo [ref=f20e180]:
+    - generic [ref=f20e181]:
+      - generic [ref=f20e182]:
+        - paragraph [ref=f20e183]: Sitemap
+        - list [ref=f20e184]:
+          - listitem [ref=f20e185]:
+            - link "Work" [ref=f20e186] [cursor=pointer]:
+              - /url: /work/
+          - listitem [ref=f20e187]:
+            - link "About" [ref=f20e188] [cursor=pointer]:
+              - /url: /about/
+          - listitem [ref=f20e189]:
+            - link "Playground" [ref=f20e190] [cursor=pointer]:
+              - /url: /playground/
+          - listitem [ref=f20e191]:
+            - link "Stack" [ref=f20e192] [cursor=pointer]:
+              - /url: /stack/
+          - listitem [ref=f20e193]:
+            - link "Contact" [ref=f20e194] [cursor=pointer]:
+              - /url: /contact/
+      - generic [ref=f20e195]:
+        - paragraph [ref=f20e196]: Elsewhere
+        - list [ref=f20e197]:
+          - listitem [ref=f20e198]:
+            - link "LinkedIn" [ref=f20e199] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/alex-menzies
+          - listitem [ref=f20e200]:
+            - link "Instagram" [ref=f20e201] [cursor=pointer]:
+              - /url: https://www.instagram.com/mnzsalex/
+          - listitem [ref=f20e202]:
+            - link "Facebook" [ref=f20e203] [cursor=pointer]:
+              - /url: https://www.facebook.com/alex.menzies.965/
+          - listitem [ref=f20e204]:
+            - link "Behance" [ref=f20e205] [cursor=pointer]:
+              - /url: https://www.behance.net/alexmenzies1
+      - generic [ref=f20e206]:
+        - paragraph [ref=f20e207]: Local time
+        - paragraph [ref=f20e208]: 18:00:44
+        - paragraph [ref=f20e209]: "[ Brussels, Belgium ]"
+        - paragraph [ref=f20e210]: Available for work
+    - generic [ref=f20e214]:
+      - generic [ref=f20e215]: © 2026 Alex Menzies
+      - link "[ Back to top ]" [ref=f20e216] [cursor=pointer]:
+        - /url: "#top"
