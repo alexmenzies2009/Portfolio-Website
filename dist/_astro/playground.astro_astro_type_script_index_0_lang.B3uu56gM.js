@@ -1,1 +1,0 @@
-import{f as e,u as t}from"./motion.Cv43hXFo.js";var n=document.querySelector(`[data-film]`);n&&!t&&e.fromTo(n,{scale:.72,borderRadius:40},{scale:1,borderRadius:18,ease:`none`,scrollTrigger:{trigger:n,start:`top 100%`,end:`top 18%`,scrub:.5}});
