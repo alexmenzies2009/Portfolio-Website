@@ -10,7 +10,7 @@ const { index } = Astro.props;
 
 <section class="cta wrap section" data-rail={index}>
   <canvas class="field" data-field aria-hidden="true"></canvas>
-  <p class="eyebrow mono" data-reveal>
+  <p class="eyebrow mono" data-reveal style="--tint: var(--c-red)">
     {index && <span class="eyebrow__num">{index}</span>}
     <span class="eyebrow__rule"></span>
     <span>Contact</span>

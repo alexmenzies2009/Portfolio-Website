@@ -2,6 +2,7 @@
 // navigation, social links, CV rows, tools and the playground pieces.
 // Edit the text between the quotes and save; the site updates.
 import type { ImageMetadata } from 'astro';
+import { palette } from '../lib/palette';
 import portrait from '../assets/about/portrait.webp';
 import svcGraphics from '../assets/services/graphics.webp';
 import svcBranding from '../assets/services/branding.webp';
@@ -24,18 +25,20 @@ export const site = {
   playgroundIntro: "Welcome to a new world, a place where I play, a place where I showcase and unleash my creativity in AI. Trust me, it's the future.",
   /** Words that rotate in front of "Designer" on the home page. */
   disciplines: ['Graphic', 'Brand', 'UI+UX', 'Web'],
-  /** The colour each of those words takes on the V2 home page: accents of matching projects
-   * (Pizza Hut Béarnaise, Blue2Purple, Back to School, Beat Invasion). */
-  disciplineAccents: ['#ffcc4d', '#19d3e0', '#a78bff', '#ff4b4b'],
+  /** The colour each of those words takes on the home page (from the project palette). */
+  disciplineAccents: [palette.yellow, palette.cyan, palette.violet, palette.red],
 };
 
+/** Menu links. "tint" is each page's colour: its menu link on hover and the label at the top of the page. */
 export const nav = [
-  { label: 'Work', href: '/work/' },
-  { label: 'About', href: '/about/' },
-  { label: 'Playground', href: '/playground/' },
-  { label: 'Stack', href: '/stack/' },
-  { label: 'Contact', href: '/contact/' },
+  { label: 'Work', href: '/work/', tint: palette.yellow },
+  { label: 'About', href: '/about/', tint: palette.cyan },
+  { label: 'Playground', href: '/playground/', tint: palette.green },
+  { label: 'Stack', href: '/stack/', tint: palette.violet },
+  { label: 'Contact', href: '/contact/', tint: palette.red },
 ];
+/** Page colour by path, for the label at the top of each page. */
+export const tintFor = (href: string) => nav.find((n) => n.href === href)?.tint;
 
 export const socials = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/alex-menzies' },

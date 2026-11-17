@@ -4,7 +4,8 @@ import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import ContactCta from '../../components/ContactCta.astro';
-import { site } from '../../data/site';
+import { site, tintFor } from '../../data/site';
+import { tintOf } from '../../lib/palette';
 
 const work = await getWork();
 // Filter buttons, in this order. A project shows under a filter when its "tags" include it.
@@ -13,7 +14,7 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
 ---
 
 <Base title="Work" description={site.allWorkIntro}>
-  <PageHero eyebrow="Work" lines={['All', 'Projects']} count={work.length} />
+  <PageHero eyebrow="Work" lines={['All', 'Projects']} count={work.length} tint={tintFor('/work/')} />
 
   <section class="wk wrap">
     <div class="wk__bar">
@@ -23,7 +24,7 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
           <button class="bracket" type="button" data-filter="all" aria-pressed="true">All<sup>{work.length}</sup></button>
           {
             FILTERS.map((f) => (
-              <button class="bracket" type="button" data-filter={f} aria-pressed="false">
+              <button class="bracket" type="button" data-filter={f} aria-pressed="false" style={`--accent-text: ${tintOf(f)}`}>
                 {f}
                 <sup>{count(f)}</sup>
               </button>

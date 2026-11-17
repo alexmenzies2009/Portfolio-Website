@@ -112,13 +112,11 @@ email address in the endpoint, so the address is not visible in the page source.
 
 ## Put it online
 
-Any static host works: Netlify, Vercel, Cloudflare Pages, GitHub Pages.
-
-- Build command: `npm run build`
-- Folder to publish: `dist`
-
-Without connecting anything you can also run `npm run build` and drag the `dist` folder onto
-https://app.netlify.com/drop.
+The site is on GitHub and Netlify builds it from there: on every push Netlify installs the
+packages, runs `npm run build` and publishes the `dist` folder it produces (settings in
+`netlify.toml`). That is why `node_modules` and `dist` are not in the repository (see
+`.gitignore`): Netlify makes its own. Locally, `npm install` brings `node_modules` back and
+`npm run build` makes a fresh `dist` whenever you want to check the finished site.
 
 Once you have a domain, set it as `SITE_URL` when building (for example
 `SITE_URL=https://yourdomain.com npm run build`, or as an environment variable at your host).
@@ -128,7 +126,8 @@ It is used for the canonical link and the social-share image address.
 
 Everything pulled from the old Framer site on 15 November 2026: the original texts
 (`content.json`), the full-size original images (`assets/`, about 200 MB) and the scripts that
-converted them. The site does not need this folder to run. Keep it as a backup, or delete it
+converted them. The site does not need this folder to run, so it is left out of the GitHub
+repository (`.gitignore`) and only lives on this computer. Keep it as a backup, or delete it
 once you are sure you have your originals elsewhere.
 
 ## Why `npm run` goes through `scripts/astro.mjs`

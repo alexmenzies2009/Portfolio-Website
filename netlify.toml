@@ -1,5 +1,5 @@
-# Used only if the site is later connected to a Git repository on Netlify.
-# (Dragging the dist folder onto Netlify needs none of this.)
+# Netlify builds the site from the GitHub repository: it installs the packages from
+# package-lock.json, runs the build and publishes the dist folder it produces.
 [build]
   command = "npm run build"
   publish = "dist"

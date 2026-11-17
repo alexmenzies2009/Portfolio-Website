@@ -2,6 +2,7 @@
 // A project tile. Hovering it lends the whole page the project's accent colour.
 import { Image } from 'astro:assets';
 import type { Project } from '../lib/work';
+import { tintOf } from '../lib/palette';
 
 interface Props {
   entry: Project;
@@ -26,7 +27,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   data-accent={accent ?? ''}
   data-cursor="View"
   data-tags={tags.join('|')}
-  style={accent ? `--card-accent:${accent};--card-on:#09090a` : undefined}
+  style={`--tag-tint:${tintOf(tags[0])};${accent ? `--card-accent:${accent};--card-on:#09090a` : ''}`}
 >
   <div class="card__frame" data-tilt>
     <div class="card__media" data-cover={entry.id} data-reveal="clip" style={ratio ? `--ar:${ratio}` : undefined}>
@@ -97,6 +98,19 @@ const pad = (n: number) => String(n).padStart(2, '0');
       background-color 0.4s var(--ease-out),
       color 0.4s var(--ease-out),
       border-color 0.4s;
+  }
+  .card__tag::before {
+    content: '';
+    width: 0.55em;
+    height: 0.55em;
+    margin-right: 0.6em;
+    border-radius: 50%;
+    background: var(--tag-tint);
+    transition: background-color 0.4s var(--ease-out);
+  }
+  .card:hover .card__tag::before,
+  .card:focus-visible .card__tag::before {
+    background: currentColor;
   }
   .card:hover .card__tag,
   .card:focus-visible .card__tag {

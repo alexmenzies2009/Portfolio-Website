@@ -1,7 +1,7 @@
 // Scroll + reveal system. Everything here is driven by data-attributes in the markup:
 //
 //   data-split="lines|words|chars"  text that rises out of a mask when it enters the viewport
-//   data-reveal                     block that fades up            (data-reveal="clip" wipes a media frame open)
+//   data-reveal                     block that fades up            (data-reveal="clip": a block of colour opens into the image)
 //   data-delay="0.2"                extra delay for either of the above
 //   data-parallax="0.1"             image drifts inside its frame while scrolling
 //   data-kinetic="75,125"           variable-font width is scrubbed by scroll
@@ -34,6 +34,16 @@ export function lockScroll(lock: boolean) {
 }
 
 const num = (v: string | undefined, fallback: number) => (v === undefined || v === '' || Number.isNaN(Number(v)) ? fallback : Number(v));
+
+// The colour a media frame shows while it opens: the project's accent (a card or piece's
+// data-accent, or the page's own on a project page), else the palette in turn.
+const PALETTE = ['--c-yellow', '--c-cyan', '--c-violet', '--c-red', '--c-pink', '--c-orange', '--c-green'];
+let nextColor = 0;
+function revealColor(el: HTMLElement) {
+  const own = el.closest<HTMLElement>('[data-accent]')?.dataset.accent || document.documentElement.dataset.accentBase;
+  if (own) return own;
+  return getComputedStyle(document.documentElement).getPropertyValue(PALETTE[nextColor++ % PALETTE.length]).trim();
+}
 
 export function initReveals(root: ParentNode = document) {
   if (reduced) return;
@@ -72,9 +82,26 @@ export function initReveals(root: ParentNode = document) {
     const delay = num(el.dataset.delay, 0);
     const st = { trigger: el, start: 'top 92%', once: true };
     if (el.dataset.reveal === 'clip') {
+      // Media frames: a small rounded block of colour in the middle of the frame opens out to
+      // fill it, and the picture comes into focus on top of it, settling from a soft zoom.
+      // The colour is the project's own accent when there is one, else the next palette colour.
       const inner = el.querySelector<HTMLElement>('img, video');
-      gsap.fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.out', delay, scrollTrigger: st, clearProps: 'clipPath' });
-      if (inner && !inner.hasAttribute('data-parallax')) gsap.fromTo(inner, { scale: 1.3 }, { scale: 1, duration: 1.8, ease: 'expo.out', delay, scrollTrigger: st });
+      const color = revealColor(el);
+      const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+      const tl = gsap.timeline({
+        delay,
+        scrollTrigger: st,
+        onComplete: () => {
+          gsap.set(el, { clearProps: 'clipPath,backgroundColor' });
+          if (inner) gsap.set(inner, { clearProps: inner.hasAttribute('data-parallax') ? 'opacity,filter' : 'opacity,filter,transform' });
+        },
+      });
+      gsap.set(el, { backgroundColor: color });
+      tl.fromTo(el, { clipPath: `inset(22% 26% 22% 26% round ${radius * 2.5}px)` }, { clipPath: `inset(0% 0% 0% 0% round ${radius}px)`, duration: 1.5, ease: 'expo.inOut' }, 0);
+      if (inner) {
+        tl.fromTo(inner, { opacity: 0, filter: 'blur(14px)' }, { opacity: 1, filter: 'blur(0px)', duration: 1.1, ease: 'power2.out' }, 0.55);
+        if (!inner.hasAttribute('data-parallax')) tl.fromTo(inner, { scale: 1.28 }, { scale: 1, duration: 2.1, ease: 'expo.out' }, 0.35);
+      }
     } else {
       gsap.fromTo(el, { autoAlpha: 0, y: 36 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'expo.out', delay, scrollTrigger: st });
     }

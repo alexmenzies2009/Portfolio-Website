@@ -6,7 +6,7 @@ import Services from '../components/Services.astro';
 import ContactCta from '../components/ContactCta.astro';
 import Arrow from '../components/Arrow.astro';
 import Pill from '../components/Pill.astro';
-import { site, about, stack } from '../data/site';
+import { site, about, stack, tintFor } from '../data/site';
 import { getWork } from '../lib/work';
 
 const [first, ...rest] = site.name.split(' ');
@@ -25,7 +25,7 @@ const cv = [
 ---
 
 <Base title="About" description={site.intro} image={about.portrait}>
-  <PageHero eyebrow={site.role} lines={[first, rest.join(' ')]} />
+  <PageHero eyebrow={site.role} lines={[first, rest.join(' ')]} tint={tintFor('/about/')} />
 
   <section class="face wrap grid">
     <blockquote class="face__quote face__quote--a" data-split data-delay="0.6">“{about.quotes[0]}”</blockquote>
@@ -36,7 +36,7 @@ const cv = [
   </section>
 
   <section class="bio wrap section grid">
-    <p class="eyebrow mono bio__eyebrow" data-reveal>
+    <p class="eyebrow mono bio__eyebrow" data-reveal style="--tint: var(--c-cyan)">
       <span class="eyebrow__rule"></span>
       <span>Hello</span>
     </p>
@@ -119,7 +119,7 @@ const cv = [
   </section>
 
   <section class="likes" aria-label="Interests">
-    <p class="eyebrow mono wrap" data-reveal>
+    <p class="eyebrow mono wrap" data-reveal style="--tint: var(--c-pink)">
       <span class="eyebrow__rule"></span>
       <span>Interests</span>
     </p>

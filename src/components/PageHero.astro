@@ -8,13 +8,15 @@ interface Props {
   count?: number | string;
   /** Tallest a line may get, in % of the viewport height. */
   max?: number;
+  /** Colour of the label line and count, from the palette (e.g. "var(--c-cyan)"). */
+  tint?: string;
 }
-const { eyebrow, lines, count, max = 34 } = Astro.props;
+const { eyebrow, lines, count, max = 34, tint } = Astro.props;
 ---
 
 <section class="phero wrap">
   <canvas class="field" data-field aria-hidden="true"></canvas>
-  <p class="eyebrow mono" data-reveal data-delay="0.55">
+  <p class="eyebrow mono" data-reveal data-delay="0.55" style={tint ? `--tint: ${tint}` : undefined}>
     <span class="eyebrow__rule"></span>
     <span>{eyebrow}</span>
     {count !== undefined && <span class="phero__count">({count})</span>}
@@ -43,7 +45,7 @@ const { eyebrow, lines, count, max = 34 } = Astro.props;
     padding-top: calc(var(--header-h) + clamp(2rem, 8vh, 6rem));
   }
   .phero__count {
-    color: var(--fg);
+    color: var(--tint, var(--fg));
   }
   .phero__title {
     display: grid;

@@ -3,7 +3,7 @@ import { Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import ContactCta from '../components/ContactCta.astro';
-import { site, playground } from '../data/site';
+import { site, playground, tintFor } from '../data/site';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const pieces = await Promise.all(
@@ -16,7 +16,7 @@ const pieces = await Promise.all(
 ---
 
 <Base title="Playground" description={site.playgroundIntro} image={playground[0].image}>
-  <PageHero eyebrow="Explore the" lines={['Play', 'ground']} count={pieces.length}>
+  <PageHero eyebrow="Explore the" lines={['Play', 'ground']} count={pieces.length} tint={tintFor('/playground/')}>
     <p class="pg-intro pretty" data-split data-delay="0.55">{site.playgroundIntro}</p>
   </PageHero>
 

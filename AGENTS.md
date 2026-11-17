@@ -5,7 +5,7 @@ GSAP + Lenis for motion. See README.md for the content model.
 
 ## Commands
 
-- `npm run dev` / `npm run build` / `npm run preview` go through `scripts/astro.mjs`, a launcher that finds a Node >= 22 even if an old `node` binary sits in a parent folder's `node_modules`. `.npmrc` sets `ignore-scripts=true` (dependencies ship prebuilt binaries).
+- `npm run dev` / `npm run build` / `npm run preview` go through `scripts/astro.mjs`, a launcher that finds a Node >= 22 even if an old `node` binary sits in a parent folder's `node_modules`. Deployed by Netlify from GitHub (`netlify.toml`); `node_modules`, `dist`, `.astro` and `migration` are git-ignored, so never commit them.
 - The dev server must be restarted after `src/content.config.ts` changes.
 - First production build generates about 1,150 image variants (roughly two minutes); later builds use the cache in `node_modules/.astro`.
 
@@ -23,7 +23,7 @@ GSAP + Lenis for motion. See README.md for the content model.
 
 ## Conventions
 
-- Dark only. The interface is monochrome; colour comes from a project's `accent` via the `--accent` custom property.
+- Dark only. The interface is mostly monochrome; colour comes from a project's `accent` via the `--accent` custom property, plus small touches (label numbers and rules via `--tint`, filter brackets, card tag dots, menu links, the media reveal) from the project palette: the `--c-*` tokens in `global.css`, mapped to tags and pages in `src/lib/palette.ts` and `nav` in `src/data/site.ts`. Keep colour to small accents; never large areas.
 - Display type is Mona Sans Variable; its width axis is driven with `--wdth` (75 to 125). Labels are Martian Mono.
 - Everything animated must still read correctly with `prefers-reduced-motion` and without JavaScript.
 - Astro 7's compiler rejects unclosed tags and does not repair invalid nesting.

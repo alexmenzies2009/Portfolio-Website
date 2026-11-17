@@ -30,6 +30,16 @@
   --on-accent: var(--ink);
   --accent-text: var(--accent);
 
+  /* the project palette: accents of real projects, used for small touches of colour across the
+     site (labels, filters, the image reveals). Which tag gets which is in src/lib/palette.ts. */
+  --c-yellow: #ffcc4d; /* Pizza Hut Béarnaise */
+  --c-cyan: #19d3e0; /* Blue2Purple */
+  --c-violet: #a78bff; /* Back to School */
+  --c-red: #ff4b4b; /* Beat Invasion */
+  --c-pink: #ff7ac2; /* Christmas */
+  --c-orange: #ff8a1f; /* Burger King */
+  --c-green: #86d47a; /* The Joker */
+
   /* type */
   --font-sans: 'Mona Sans Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-mono: 'Martian Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -448,14 +458,15 @@ html.js:not(.is-ready) [data-reveal] {
   gap: 0.9em;
   color: var(--fg-2);
 }
+/* a label can take a colour from the palette: style="--tint: var(--c-cyan)" */
 .eyebrow__num {
-  color: var(--fg);
+  color: var(--tint, var(--fg));
 }
 .eyebrow__rule {
   flex: none;
   width: clamp(1.5rem, 3vw, 3rem);
   height: 1px;
-  background: var(--line-2);
+  background: var(--tint, var(--line-2));
   transform: translateY(-0.35em);
 }
 
