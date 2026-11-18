@@ -93,15 +93,17 @@ are all it needs to do.
 
 - `/` is the home page: the hero is your portrait built from thumbnails of every project image.
   Every few seconds a project steps out of the portrait as a small card, floats beside it and
-  later flies back into the gap it left. Clicking a card opens a preview of that project.
-- `/backup` is the previous home page: the same portrait, where hovering magnifies the thumbnails
-  under the cursor and clicking one opens that project. To switch back, change `<Home emerge />`
-  to `<Home mosaic />` in `src/pages/index.astro`.
-- `/classic` is the earliest hero (contour map and image trail). To use it, change the line in
-  `src/pages/index.astro` to `<Home />`.
+  later flies back into the gap it left. Clicking a card opens a preview of that project. In the
+  Work section your projects stand on a turning 3D ring that visitors can drag.
+- `/testv2` is the same home page with a line that draws itself down the page as you scroll,
+  passing through every section.
+- `/backup-strip` is the previous home page: a moving strip of projects under the hero and the
+  Work section as a sideways row. To switch back, change `<Home emerge ring />` to
+  `<Home emerge />` in `src/pages/index.astro`.
+- `/backup` is the portrait where hovering magnifies the thumbnails (`<Home mosaic />`).
+- `/classic` is the earliest hero, contour map and image trail (`<Home />`).
 
-Both backups are not linked from the menu and are hidden from search engines.
-
+The backups are not linked from the menu and are hidden from search engines.
 
 ## Contact form
 

@@ -36,9 +36,10 @@ void main() {
   float line = 1.0 - smoothstep(0.0, fwidth(v) * 1.3, min(f, 1.0 - f));
   float near = exp(-d * d * 5.0) * m.z;
   vec3 ink = mix(fg, ac, clamp(near * 1.5, 0.0, 1.0));
-  vec3 col = mix(bg, ink, line * (0.12 + near * 0.8));
-  col += (ink - bg) * near * 0.045;
-  o = vec4(col, 1.0);
+  // only the lines (and the soft glow under the pointer) are drawn; between them the canvas is
+  // see-through, so it looks the same on the page background and lets things behind it show
+  float a = clamp(line * (0.12 + near * 0.8) + near * 0.045, 0.0, 1.0);
+  o = vec4(ink * a, a);
 }`;
 
 function parseColour(value: string, fallback: [number, number, number]): [number, number, number] {
@@ -57,7 +58,7 @@ function parseColour(value: string, fallback: [number, number, number]): [number
 
 export function initFields() {
   document.querySelectorAll<HTMLCanvasElement>('canvas[data-field]').forEach((canvas) => {
-    const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'low-power' });
+    const gl = canvas.getContext('webgl2', { antialias: false, alpha: true, premultipliedAlpha: true, powerPreference: 'low-power' });
     if (!gl) return;
     const compile = (type: number, src: string) => {
       const shader = gl.createShader(type)!;

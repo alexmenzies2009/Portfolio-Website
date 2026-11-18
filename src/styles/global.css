@@ -54,7 +54,7 @@
   /* space */
   --gutter: clamp(1rem, 0.4rem + 2.4vw, 2.75rem);
   --gap: clamp(0.75rem, 0.4rem + 1vw, 1.5rem);
-  --section: clamp(5.5rem, 3rem + 11vw, 14rem);
+  --section: clamp(4rem, 2rem + 6vw, 8rem);
   --radius: clamp(10px, 6px + 0.7vw, 20px);
   --header-h: clamp(4.25rem, 3rem + 3vw, 6rem);
 
@@ -481,12 +481,64 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
 .eyebrow__num {
   color: var(--tint, var(--fg));
 }
+/* the label's marker: a small pulsing dot in the label's colour */
 .eyebrow__rule {
+  position: relative;
   flex: none;
-  width: clamp(1.5rem, 3vw, 3rem);
-  height: 1px;
-  background: var(--tint, var(--line-2));
-  transform: translateY(-0.35em);
+  align-self: center;
+  width: 0.62em;
+  height: 0.62em;
+  border-radius: 50%;
+  background: var(--tint, var(--fg-3));
+}
+.eyebrow__rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse 2.2s var(--ease-out) infinite;
+}
+/* html.has-thread (test v2): one line from the hero to the footer (src/scripts/thread.ts). It sits
+   above the page background and below the content: main and the footer are lifted over it. */
+html.has-thread #main,
+html.has-thread .ftr {
+  position: relative;
+  z-index: 1;
+}
+.thread {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.thread__line {
+  fill: none;
+  stroke: color-mix(in oklab, var(--fg) 38%, transparent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.thread__tip {
+  fill: var(--fg);
+  filter: drop-shadow(0 0 6px currentColor);
+  transition: fill 0.5s var(--ease-out);
+}
+/* the section's dot answers when the line arrives */
+html.has-thread .eyebrow__rule.is-reached,
+html.has-thread .ftr .pulse.is-reached {
+  animation: thread-reached 0.9s var(--ease-out);
+}
+@keyframes thread-reached {
+  30% {
+    scale: 1.9;
+  }
+  to {
+    scale: 1;
+  }
 }
 
 /* media frame */

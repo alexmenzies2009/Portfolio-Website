@@ -14,12 +14,16 @@ interface Props {
   mosaic?: boolean;
   /** The portrait, with projects stepping out of it as cards instead of the hover lens (/, src/scripts/emerge.ts). */
   emerge?: boolean;
+  /** Test (/test): the projects under the hero stand on a turning 3D ring instead of the moving strip. */
+  ring?: boolean;
+  /** Test v2 (/testv2): a line runs down the whole page from the hero, pausing at each section (src/scripts/thread.ts). */
+  thread?: boolean;
   /** Page title; leave out for the site's default title. */
   title?: string;
   /** Hide the page from search engines (the kept-for-reference versions). */
   noindex?: boolean;
 }
-const { mosaic: mosaicProp = false, emerge = false, title, noindex = false } = Astro.props;
+const { mosaic: mosaicProp = false, emerge = false, ring = false, thread = false, title, noindex = false } = Astro.props;
 const mosaic = mosaicProp || emerge;
 const work = await getWork();
 const featured = work.filter((p) => p.data.featured);
@@ -46,13 +50,15 @@ const peek = mosaic
 // Projects shown in the moving strip under the hero (file names from src/content/work).
 const stripSlugs = ['astroflame', 'blue2purple', 'the-joker', 'beat-invasion', 'f1', 'hairspace', 'ai', 'the-batman', 'spacecat', 'back-to-school', 'neon-rider', 'noval'];
 const strip = stripSlugs.map((slug) => work.find((p) => p.id === slug)).filter((p) => p !== undefined);
+// the ring in the Work section (test): the featured projects first, topped up from the strip to ten
+const ringProjects = [...featured, ...strip.filter((p) => !featured.includes(p))].slice(0, 10);
 
 const letters = site.role.toUpperCase().split('');
 const pad = (n: number) => String(n).padStart(2, '0');
 const year = new Date().getFullYear();
 ---
 
-<Base title={title} noindex={noindex}>
+<Base title={title} noindex={noindex} htmlClass={thread ? 'has-thread' : undefined}>
   <section
     class:list={['hero', mosaic && 'hero--mosaic', emerge && 'hero--color']}
     data-wordmark-zone
@@ -109,7 +115,7 @@ const year = new Date().getFullYear();
           </p>
         )
       }
-      <p class="hero__intro" data-split data-delay="0.55">Graphic designer based in Brussels — web design, illustration &amp; visuals.</p>
+      {!ring && <p class="hero__intro" data-split data-delay="0.55">Graphic designer based in Brussels — web design, illustration &amp; visuals.</p>}
     </div>
 
     <div class="hero__word wrap">
@@ -128,6 +134,8 @@ const year = new Date().getFullYear();
     </div>
   </section>
 
+  {
+    ring ? null : (
   <section class="strip" data-marquee data-marquee-pause data-speed="0.55" aria-label="A few projects">
     <ul class="strip__track" data-marquee-track>
       {
@@ -147,8 +155,10 @@ const year = new Date().getFullYear();
       }
     </ul>
   </section>
+    )
+  }
 
-  <section class="about wrap section grid" data-rail="01">
+  <section class:list={['about wrap section grid', ring && 'about--roomy']} data-rail="01">
     <p class="eyebrow mono about__eyebrow" data-reveal style="--tint: var(--c-cyan)">
       <span class="eyebrow__num">01</span>
       <span class="eyebrow__rule"></span>
@@ -186,15 +196,32 @@ const year = new Date().getFullYear();
         </div>
       </div>
     </header>
-    <div class="work__pin" data-hscroll>
-      <div class="work__track" data-hscroll-track>
-        {featured.map((p) => <ProjectCard entry={p} large class="work__card" ratio="4 / 3" sizes="(min-width: 900px) 48vw, 100vw" />)}
-        <a class="work__all" href="/work/" data-cursor="All">
-          <span class="mono dim">{work.length} projects</span>
-          <span class="work__all-title display">See all work</span>
-        </a>
-      </div>
-    </div>
+    {
+      ring ? (
+        <div class="ring" data-ring data-cursor="Drag">
+          <div class="ring__stage">
+            <ul class="ring__wheel" data-ring-wheel>
+              {ringProjects.map((p, i) => (
+                <li class="ring__item" style={`--i:${i}`} data-ring-item>
+                  <ProjectCard entry={p} large ratio="4 / 3" sizes="(min-width: 900px) 30vw, 70vw" eager={i < 4} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p class="ring__hint mono dim">Drag to spin ↔</p>
+        </div>
+      ) : (
+        <div class="work__pin" data-hscroll>
+          <div class="work__track" data-hscroll-track>
+            {featured.map((p) => <ProjectCard entry={p} large class="work__card" ratio="4 / 3" sizes="(min-width: 900px) 48vw, 100vw" />)}
+            <a class="work__all" href="/work/" data-cursor="All">
+              <span class="mono dim">{work.length} projects</span>
+              <span class="work__all-title display">See all work</span>
+            </a>
+          </div>
+        </div>
+      )
+    }
   </section>
 
   <ContactCta index="03" />
@@ -210,6 +237,11 @@ const year = new Date().getFullYear();
   import { gsap, reduced, finePointer } from '../scripts/motion';
   import { initMosaic } from '../scripts/mosaic';
   import { initEmerge } from '../scripts/emerge';
+  import { initRing } from '../scripts/ring';
+  import { initThread } from '../scripts/thread';
+
+  initRing();
+  initThread();
 
   const emergeLayer = document.querySelector('[data-emerge]');
   const peekInfo = JSON.parse(document.querySelector('[data-peek-data]')?.textContent || '{}');
@@ -570,6 +602,77 @@ const year = new Date().getFullYear();
     padding-block: clamp(0.9rem, 1.8vw, 1.6rem);
     color: var(--fg-2);
     font-variant-numeric: tabular-nums;
+  }
+
+  .about--roomy {
+    padding-top: calc(var(--section) + clamp(2rem, 5vw, 5rem));
+  }
+
+  /* ---------- project ring (test): the Work section's cards on a turning 3D ring ---------- */
+  .ring {
+    --w: clamp(18rem, 9rem + 26vw, 33rem);
+    position: relative;
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.75rem);
+    /* pulled up toward the "Selected work" title */
+    margin: calc(-1 * clamp(1rem, 3vw, 3rem)) calc(-1 * var(--gutter)) 0;
+    overflow: clip;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  /* without the script (or with reduced motion): a row that scrolls sideways */
+  .ring__wheel {
+    display: flex;
+    gap: var(--gap);
+    overflow-x: auto;
+    padding-inline: var(--gutter);
+  }
+  .ring__item {
+    flex: none;
+    width: var(--w);
+  }
+  .ring__item :global(img) {
+    -webkit-user-drag: none;
+  }
+  /* on the ring a card shows just its number and name */
+  .ring__item :global(.card__tools) {
+    display: none;
+  }
+  .ring__hint {
+    justify-self: center;
+  }
+  /* with the script: the cards stand around a ring in 3D (ring.ts turns it) */
+  .ring:global(.is-live) .ring__stage {
+    display: grid;
+    place-items: center;
+    padding-block: 0.5rem clamp(2.75rem, 1.5rem + 4vw, 6rem);
+    perspective: 2400px;
+    perspective-origin: 50% 35%;
+    cursor: grab;
+  }
+  .ring:global(.is-dragging) .ring__stage {
+    cursor: grabbing;
+  }
+  .ring:global(.is-live) .ring__wheel {
+    position: relative;
+    display: block;
+    width: var(--w);
+    height: calc(var(--w) * 0.75 + clamp(3.5rem, 2rem + 3vw, 5.5rem));
+    padding: 0;
+    overflow: visible;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .ring:global(.is-live) .ring__item {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(calc(var(--i) * var(--step, 36deg))) translateZ(var(--r, 40rem));
+    backface-visibility: hidden;
+  }
+  @media (max-width: 640px) {
+    .ring:global(.is-live) .ring__stage {
+      perspective: 1300px;
+    }
   }
 
   /* ---------- moving strip ---------- */

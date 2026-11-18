@@ -1,10 +1,13 @@
 ---
 // Home page. The hero is the portrait built from project thumbnails, with projects stepping out
-// of it as clickable cards (src/scripts/emerge.ts).
+// of it as clickable cards (src/scripts/emerge.ts); the Work section's cards stand on a turning
+// 3D ring (src/scripts/ring.ts).
 // Earlier versions are kept, unlinked and hidden from search engines:
-//   /backup   the same portrait with the hover lens instead of the cards (src/pages/backup.astro)
-//   /classic  the contour map and image trail (src/pages/classic.astro)
+//   /testv2        this page plus a line running through every section (src/pages/testv2.astro)
+//   /backup-strip  the previous home page: moving strip under the hero, cards in a sideways row
+//   /backup        the portrait with the hover lens instead of the cards (src/pages/backup.astro)
+//   /classic       the contour map and image trail (src/pages/classic.astro)
 import Home from '../components/Home.astro';
 ---
 
-<Home emerge />
+<Home emerge ring />

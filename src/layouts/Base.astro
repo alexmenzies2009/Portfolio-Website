@@ -22,8 +22,10 @@ interface Props {
   accent?: string;
   /** Keep this page out of search engines. */
   noindex?: boolean;
+  /** Extra class on <html> for page-level style variants (e.g. the /test page). */
+  htmlClass?: string;
 }
-const { title, description = site.description, image, accent, noindex = false } = Astro.props;
+const { title, description = site.description, image, accent, noindex = false, htmlClass } = Astro.props;
 
 const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.role} · Portfolio`;
 const abs = (path: string) => (Astro.site ? new URL(path, Astro.site).href : path);
@@ -42,7 +44,7 @@ const share = image ? (await getImage({ src: image, width: 1200, height: 630, fi
 ---
 
 <!doctype html>
-<html lang="en" style={accent ? `--accent:${accent};--on-accent:#09090a` : undefined} data-accent-base={accent} data-glow={accent ? '' : undefined}>
+<html lang="en" class={htmlClass} style={accent ? `--accent:${accent};--on-accent:#09090a` : undefined} data-accent-base={accent} data-glow={accent ? '' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
