@@ -49,16 +49,18 @@ export function initWordmark() {
       zone.addEventListener('pointerleave', () => (activeTarget = 0));
     }
     new IntersectionObserver(([entry]) => (visible = entry.isIntersecting)).observe(el);
-    // touch screens: the wave holds still while the page is being scrolled. Changing the letters'
-    // widths re-lays out the text, and doing that on every frame of a scroll makes it stutter.
+
+    // touch screens: while the page is being scrolled the wave keeps moving but updates every third
+    // frame (each change re-shapes the big variable-font letters, which is heavy for a phone mid-scroll)
     let scrolledAt = 0;
+    let tick = 0;
     if (!finePointer) addEventListener('scroll', () => (scrolledAt = performance.now()), { passive: true });
 
     const SIGMA = 0.17;
     const raw = new Array<number>(n).fill(0);
     gsap.ticker.add((time) => {
       if (!visible || document.hidden) return;
-      if (scrolledAt && performance.now() - scrolledAt < 220) return;
+      if (scrolledAt && performance.now() - scrolledAt < 220 && tick++ % 3) return;
       active += (activeTarget - active) * 0.06;
       let mean = 0;
       for (let i = 0; i < n; i++) {

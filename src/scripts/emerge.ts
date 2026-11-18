@@ -316,7 +316,8 @@ export function initEmerge(mosaic: Mosaic, info: Record<string, Info>) {
   const pump = async () => {
     const { in: built, out } = mosaic.progress();
     // cards on their way back still count, so there are never more than four on screen
-    if (!spawning && built > 0.97 && out < 0.05 && !paused() && cards.length < most()) {
+    const atTop = out < 0.05 && hero.getBoundingClientRect().top > -40;
+    if (!spawning && built > 0.97 && atTop && !paused() && cards.length < most()) {
       spawning = true;
       await emerge();
       spawning = false;
