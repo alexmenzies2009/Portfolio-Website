@@ -66,6 +66,14 @@
 html {
   transition: --accent 0.8s var(--ease-out);
 }
+/* touch screens: the colour switches at once. A fading --accent restyles the whole page on every
+   frame of the fade, and on a phone that happens mid-scroll (the colour follows what passes the
+   middle of the screen), which made scrolling stutter. */
+@media not ((hover: hover) and (pointer: fine)) {
+  html {
+    transition: none;
+  }
+}
 
 /* ---------- reset ---------- */
 *,

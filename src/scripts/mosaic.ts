@@ -17,6 +17,7 @@ in vec2 aSeed;   // two random numbers per tile
 in float aKind;  // 0 = part of the portrait, 1 = a particle drifting in the background
 uniform vec2 uRes;
 uniform float uTime, uIn, uOut, uSize, uLight, uLens;
+uniform float uLite;     // 1 on touch screens: the scroll-away is kept cheap for a phone's GPU
 uniform vec2 uMouse;    // pointer in clip space (far away until it moves)
 uniform vec2 uTurn;     // how far the head is turned, -1..1
 uniform vec2 uOffset;   // where the portrait sits in clip space
@@ -63,6 +64,9 @@ void main() {
   float leave = uOut * uOut;
   p.xy += (aHome * 0.9 + (aSeed - 0.5) * 1.6) * leave * 2.6;
   p.z += leave * (0.6 + aSeed.x * 1.4);
+  // phones: tiles may not fly right up to the viewer, where they would grow to many times their
+  // size (thousands of huge see-through squares per frame is more than a phone's GPU can draw)
+  if (uLite > 0.5) p.z = min(p.z, 1.2);
   // turn with the pointer (particles sit at different depths, so they slide past each other)
   float ry = uTurn.x * 0.38, rx = -uTurn.y * 0.22;
   p.xz = mat2(cos(ry), -sin(ry), sin(ry), cos(ry)) * p.xz;
@@ -106,7 +110,7 @@ void main() {
   float twinkle = 0.5 + 0.5 * sin(uTime * (0.6 + aSeed.y * 1.5) + aSeed.x * 30.0);
   vTile = aTile;
   vShade = mix(0.12 + 1.15 * aLum * aLum, 0.95, uLight) * behind;
-  vAlpha = (1.0 - hole) * arrive * (1.0 - smoothstep(0.75, 1.0, uOut)) * mix(1.0, edge * (0.3 + 0.7 * twinkle), dust);
+  vAlpha = (1.0 - hole) * arrive * (1.0 - mix(smoothstep(0.75, 1.0, uOut), smoothstep(0.35, 0.78, uOut), uLite)) * mix(1.0, edge * (0.3 + 0.7 * twinkle), dust);
   vLens = big;
   vKind = dust;
   vSeed = aSeed.y;
@@ -263,7 +267,7 @@ export async function initMosaic({
 
   const u = (name: string) => gl.getUniformLocation(program, name);
   gl.uniform2f(u('uGrid'), map.atlas.cols, map.atlas.rows);
-  const uRes = u('uRes'), uTime = u('uTime'), uIn = u('uIn'), uOut = u('uOut'), uSize = u('uSize'), uLight = u('uLight'), uMouse = u('uMouse'), uTurn = u('uTurn'), uLens = u('uLens'), uOffset = u('uOffset'), uScale = u('uScale'), uCell = u('uCell'), uHoles = u('uHoles');
+  const uRes = u('uRes'), uTime = u('uTime'), uIn = u('uIn'), uOut = u('uOut'), uSize = u('uSize'), uLight = u('uLight'), uMouse = u('uMouse'), uTurn = u('uTurn'), uLens = u('uLens'), uOffset = u('uOffset'), uScale = u('uScale'), uCell = u('uCell'), uHoles = u('uHoles'), uLite = u('uLite');
   const holes = new Float32Array(6 * 3);
   gl.uniform1f(u('uHomeCell'), 1 / half);
 
@@ -271,7 +275,7 @@ export async function initMosaic({
   // resizing a canvas wipes it: draw again straight away, so a blank frame is never shown
   let redraw: (() => void) | null = null;
   const resize = () => {
-    dpr = Math.min(devicePixelRatio || 1, 1.5);
+    dpr = Math.min(devicePixelRatio || 1, finePointer ? 1.5 : 1.25);
     width = Math.max(1, Math.round(canvas.clientWidth * dpr));
     height = Math.max(1, Math.round(canvas.clientHeight * dpr));
     canvas.width = width;
@@ -376,6 +380,7 @@ export async function initMosaic({
   }
 
   canvas.classList.add('is-live');
+  let cleared = false;
   const draw = (time: number) => {
     if (!visible || document.hidden) return;
     // the opening follows the pointer at an unhurried pace, so a quick sweep of the mouse
@@ -403,8 +408,16 @@ export async function initMosaic({
       tipY = ((1 - mouse.y) / 2) * hero.clientHeight;
       tip.style.transform = `translate(${tipX + 44}px, ${tipY + 40}px)`;
     }
+    // phones: once everything has faded out while scrolling away, stop drawing (clear once)
+    if (!finePointer && state.out > 0.8) {
+      if (!cleared) gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      cleared = true;
+      return;
+    }
+    cleared = false;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.uniform1f(uLens, lens);
+    gl.uniform1f(uLite, finePointer ? 0 : 1);
     gl.uniform3fv(uHoles, holes);
     gl.uniform2f(uRes, width, height);
     gl.uniform1f(uTime, reduced ? 0 : time);

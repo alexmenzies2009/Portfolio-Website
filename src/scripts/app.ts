@@ -6,8 +6,11 @@ import { runLoader } from './loader';
 import { initFields } from './field';
 import { initMosaic } from './mosaic';
 
-// the inner pages' headers: the home page's drifting particles, without the portrait
-document.querySelectorAll<HTMLCanvasElement>('canvas[data-dust]').forEach((canvas) => initMosaic({ canvas, portrait: false }));
+// the inner pages' headers: the home page's drifting particles, without the portrait (not on phones,
+// where the headers look cleaner without them)
+if (!matchMedia('(max-width: 699px)').matches) {
+  document.querySelectorAll<HTMLCanvasElement>('canvas[data-dust]').forEach((canvas) => initMosaic({ canvas, portrait: false }));
+}
 
 initSmoothScroll();
 initCursor();
