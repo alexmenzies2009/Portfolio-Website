@@ -323,15 +323,12 @@ export async function initMosaic({
     });
     mo.observe(html, { attributes: true, attributeFilter: ['class'] });
   }
-  // scrolling away blows the portrait apart; on a computer only. On a phone the portrait simply
-  // scrolls off like a picture, and it is not redrawn while the page moves (see draw): iOS scrolls
-  // the page apart from the code that redraws the canvas, so redrawing mid-scroll made it judder.
+  // scrolling away blows the portrait apart; on a computer only. On a phone the portrait keeps
+  // its gentle motion and simply scrolls off (the blow-apart was too heavy for a phone mid-scroll).
   const touch = !finePointer;
-  let scrolledAt = 0;
   if (!reduced && !touch) {
     ScrollTrigger.create({ trigger: canvas.parentElement, start: 'top top', end: 'bottom 15%', scrub: 0.4, onUpdate: (self) => (state.out = self.progress) });
   }
-  if (touch) addEventListener('scroll', () => (scrolledAt = performance.now()), { passive: true });
 
   // ---- which tile is under the cursor? (same projection as the shader, done on the CPU)
   const hero = canvas.parentElement as HTMLElement;
@@ -384,8 +381,6 @@ export async function initMosaic({
   canvas.classList.add('is-live');
   const draw = (time: number) => {
     if (!visible || document.hidden) return;
-    // phones: hold the last frame while the page is being scrolled (it then moves with the page)
-    if (touch && performance.now() - scrolledAt < 180) return;
     // the opening follows the pointer at an unhurried pace, so a quick sweep of the mouse
     // does not race through every project
     mouse.x += (mouse.tx - mouse.x) * 0.035;
