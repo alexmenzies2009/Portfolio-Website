@@ -36,7 +36,8 @@ export function initEmerge(mosaic: Mosaic, info: Record<string, Info>) {
   let spawning = false;
 
   const narrow = () => hero.clientWidth < 700;
-  const most = () => 4;
+  // at most this many cards out at once (a phone gets crowded quickly)
+  const most = () => (narrow() ? 2 : 4);
   // the open band between the site header and the wordmark, in px from the hero's top
   const band = () => {
     const box = hero.getBoundingClientRect();

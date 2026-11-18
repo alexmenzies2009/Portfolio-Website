@@ -25,12 +25,20 @@ const cv = [
 ---
 
 <Base title="About" description={site.intro} image={about.portrait}>
-  <PageHero eyebrow={site.role} lines={[first, rest.join(' ')]} tint={tintFor('/about/')} />
+  <PageHero eyebrow={site.role} lines={[first, rest.join(' ')]} tint={tintFor('/about/')}>
+    {/* on wide screens the portrait sits at the end of the first name, as tall as the line */}
+    <span slot="aside" class="mini">
+      <span class="mini__photo frame" data-reveal="clip" data-delay="0.7" data-tilt data-accent="#19d3e0">
+        <Image src={about.portrait} alt={`Portrait of ${site.name}`} widths={[320, 480, 720]} sizes="18rem" quality={80} loading="eager" />
+      </span>
+    </span>
+  </PageHero>
 
   <section class="face wrap grid">
     <blockquote class="face__quote face__quote--a" data-split data-delay="0.6">“{about.quotes[0]}”</blockquote>
+    {/* narrower or taller screens: the portrait sits here instead, at a modest size */}
     <div class="face__photo frame" data-reveal="clip" data-delay="0.35" data-tilt>
-      <Image src={about.portrait} alt={`Portrait of ${site.name}`} widths={[480, 800, 1200, 1600]} sizes="(min-width: 900px) 50vw, 100vw" quality={80} loading="eager" data-parallax="0.07" />
+      <Image src={about.portrait} alt="" widths={[360, 560, 800]} sizes="(min-width: 640px) 22rem, 64vw" quality={80} loading="lazy" />
     </div>
     <blockquote class="face__quote face__quote--b" data-split>“{about.quotes[1]}”</blockquote>
   </section>
@@ -133,19 +141,64 @@ const cv = [
   <ContactCta />
 </Base>
 
+<script>
+  // the portrait follows straight after the first name (whose size depends on the screen)
+  const line = document.querySelector<HTMLElement>('.phero__line');
+  const text = line?.querySelector<HTMLElement>('[data-fit-text]');
+  const aside = line?.querySelector<HTMLElement>('.phero__aside');
+  if (line && text && aside) {
+    const place = () => {
+      aside.style.left = `${text.offsetWidth + text.offsetHeight * 0.14}px`;
+      aside.style.right = 'auto';
+    };
+    place();
+    new ResizeObserver(place).observe(text);
+  }
+</script>
+
 <style>
   /* ---------- portrait + quotes ---------- */
+  /* the portrait next to the name: only where the first line leaves room for it */
+  .mini {
+    display: none;
+    height: 100%;
+    padding-block: 0.04em;
+    rotate: 4deg;
+  }
+  .mini__photo {
+    display: block;
+    height: 100%;
+    aspect-ratio: 4 / 5;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
+  }
+  .mini__photo :global(img),
+  .face__photo :global(img) {
+    object-position: 50% 12%;
+  }
   .face {
     row-gap: 2rem;
     padding-top: clamp(2rem, 5vw, 5rem);
   }
   .face__photo {
-    grid-column: 4 / span 6;
+    grid-column: 5 / span 4;
     grid-row: 1 / span 2;
+    justify-self: center;
+    width: min(100%, 22rem);
     aspect-ratio: 4 / 5;
   }
-  .face__photo :global(img) {
-    object-position: 50% 12%;
+  @media (min-width: 900px) and (min-aspect-ratio: 5 / 4) {
+    .mini {
+      display: block;
+    }
+    .face__photo {
+      display: none;
+    }
+    .face .face__quote--a {
+      grid-column: 1 / span 5;
+    }
+    .face .face__quote--b {
+      grid-column: 8 / -1;
+    }
   }
   .face__quote {
     font-size: clamp(1.15rem, 0.9rem + 1vw, 1.9rem);
@@ -155,13 +208,13 @@ const cv = [
     text-wrap: balance;
   }
   .face__quote--a {
-    grid-column: 1 / span 3;
+    grid-column: 1 / span 4;
     grid-row: 1;
     align-self: start;
     padding-right: 1rem;
   }
   .face__quote--b {
-    grid-column: 10 / -1;
+    grid-column: 9 / -1;
     grid-row: 2;
     align-self: end;
     padding-left: 1rem;
@@ -177,8 +230,10 @@ const cv = [
   }
   .figs__list li {
     display: grid;
+    justify-items: center;
     gap: 0.6rem;
     padding-block: clamp(1.25rem, 2.5vw, 2.25rem);
+    text-align: center;
   }
   .figs__num {
     font-size: clamp(3.2rem, 1rem + 8vw, 9rem);
@@ -363,6 +418,7 @@ const cv = [
     .face__photo {
       grid-column: 1 / -1;
       grid-row: auto;
+      width: min(64vw, 20rem);
     }
     .face__quote--a,
     .face__quote--b {

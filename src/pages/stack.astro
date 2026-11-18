@@ -6,6 +6,13 @@ import ContactCta from '../components/ContactCta.astro';
 import { stack, tintFor } from '../data/site';
 
 const pad = (n: number) => String(n).padStart(2, '0');
+// each tool's icon, inlined: monochrome (src/assets/stack) and its real colours for the hover (stack/color)
+const mono = import.meta.glob<string>('../assets/stack/*.svg', { query: '?raw', import: 'default', eager: true });
+const colour = import.meta.glob<string>('../assets/stack/color/*.svg', { query: '?raw', import: 'default', eager: true });
+const icon = (name: string) => mono[`../assets/stack/${name}.svg`] ?? '';
+const iconColour = (name: string) => colour[`../assets/stack/color/${name}.svg`] ?? '';
+// the last tile fills whatever is left of the final row (4, 3 or 2 columns depending on the screen)
+const rest = (cols: number) => cols - (stack.length % cols) || cols;
 ---
 
 <Base title="Stack" description="The tools Alex Menzies uses every day — from Illustrator and Photoshop to After Effects and Notion.">
@@ -19,13 +26,14 @@ const pad = (n: number) => String(n).padStart(2, '0');
           const linkProps = tool.href ? { href: tool.href, target: '_blank', rel: 'noopener' } : {};
           return (
             <li data-reveal data-delay={(i % 4) * 0.06}>
-              <Tag class="st__tile" data-tilt {...linkProps}>
+              <Tag class="st__tile" data-tilt style={tool.brand ? `--brand: ${tool.brand}` : undefined} {...linkProps}>
                 <span class="st__top mono">
                   <span>{pad(i + 1)}</span>
                   <span>{tool.label}</span>
                 </span>
-                <span class="st__symbol display" aria-hidden="true">
-                  {tool.symbol}
+                <span class="st__icon" aria-hidden="true">
+                  <span class="st__mono" set:html={icon(tool.icon)} />
+                  <span class="st__real" set:html={iconColour(tool.icon)} />
                 </span>
                 <span class="st__name">
                   {tool.name}
@@ -36,7 +44,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
           );
         })
       }
-      <li class="st__wide" data-reveal>
+      <li class="st__wide" data-reveal style={`--span4: ${rest(4)}; --span3: ${rest(3)}; --span2: ${rest(2)}`}>
         <a class="st__tile st__tile--cta" href="/work/">
           <span class="st__top mono">
             <span>→</span>
@@ -62,7 +70,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     gap: var(--gap);
   }
   .st__wide {
-    grid-column: span 3;
+    grid-column: span var(--span4);
   }
   .st__tile {
     position: relative;
@@ -87,13 +95,51 @@ const pad = (n: number) => String(n).padStart(2, '0');
     color: var(--fg-2);
     transition: color 0.5s var(--ease-out);
   }
-  .st__symbol {
+  /* icons are monochrome (they follow the theme's text colour; --knock is the tile colour, for
+     details cut out of a logo). Hovering a tile brings up the real, coloured logo. */
+  .st__tile {
+    --knock: var(--surface);
+  }
+  .st__icon {
+    position: relative;
+    display: grid;
     align-self: center;
-    font-size: clamp(4rem, 2rem + 8vw, 10.5rem);
-    line-height: 0.8;
-    text-transform: none;
-    letter-spacing: -0.05em;
-    transition: font-stretch 0.8s var(--ease-out);
+    justify-self: center;
+    width: clamp(3.2rem, 1.4rem + 4.2vw, 5.75rem);
+    aspect-ratio: 1;
+    transition:
+      scale 0.7s var(--ease-out),
+      rotate 0.7s var(--ease-out);
+  }
+  .st__mono,
+  .st__real {
+    grid-area: 1 / 1;
+    transition:
+      opacity 0.45s var(--ease-out),
+      scale 0.6s var(--ease-out),
+      filter 0.45s var(--ease-out);
+  }
+  .st__real {
+    opacity: 0;
+    scale: 0.86;
+    filter: blur(4px);
+  }
+  .st__icon :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .st__tile:hover .st__mono,
+  a.st__tile:focus-visible .st__mono {
+    opacity: 0;
+    scale: 1.1;
+    filter: blur(4px);
+  }
+  .st__tile:hover .st__real,
+  a.st__tile:focus-visible .st__real {
+    opacity: 1;
+    scale: 1;
+    filter: none;
   }
   .st__name {
     display: flex;
@@ -106,9 +152,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
   .st__tile :global(.st__arrow) {
     width: 0.7em;
     height: 0.7em;
+    color: var(--brand, currentColor);
   }
   .st__tile:hover,
   a.st__tile:focus-visible {
+    --knock: var(--fg);
     background: var(--fg);
     color: var(--ink);
   }
@@ -116,9 +164,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
   a.st__tile:focus-visible .st__top {
     color: var(--ink);
   }
-  .st__tile:hover .st__symbol,
-  a.st__tile:focus-visible .st__symbol {
-    --wdth: 125;
+  .st__tile:hover .st__icon,
+  a.st__tile:focus-visible .st__icon {
+    scale: 1.12;
+    rotate: -6deg;
   }
   .st__tile--cta {
     background: transparent;
@@ -138,7 +187,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .st__wide {
-      grid-column: span 2;
+      grid-column: span var(--span3);
     }
   }
   @media (max-width: 640px) {
@@ -146,7 +195,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .st__wide {
-      grid-column: span 1;
+      grid-column: span var(--span2);
     }
     .st__cta {
       font-size: clamp(1.6rem, 9vw, 2.6rem);

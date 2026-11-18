@@ -47,40 +47,61 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
         ))
       }
     </ul>
-    <div class="wk__peek frame" data-peek aria-hidden="true"><img alt="" /></div>
+    <div class="wk__peek" data-peek aria-hidden="true">
+      <div class="wk__peek-tilt" data-peek-tilt>
+        <div class="wk__peek-card frame"><img alt="" /><img alt="" /></div>
+      </div>
+    </div>
   </section>
 
   <ContactCta />
 </Base>
 
 <script>
-  import { gsap, ScrollTrigger, reduced, finePointer } from '../../scripts/motion';
-  import { Flip } from 'gsap/Flip';
-
-  gsap.registerPlugin(Flip);
+  import { gsap, ScrollTrigger, reduced, finePointer, finishReveals } from '../../scripts/motion';
 
   const list = document.querySelector<HTMLElement>('[data-list]');
   if (list) {
     const items = [...list.querySelectorAll<HTMLElement>('[data-item]')];
     const filterBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
     const viewBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-view]')].filter((b) => b.tagName === 'BUTTON');
+    const shown = () => items.filter((i) => !i.hidden);
 
-    const applyFilter = (filter: string, animate: boolean) => {
-      const state = animate && !reduced ? Flip.getState(items) : null;
+    // Changing what the list shows: the current cards fade out, the list eases to its new height,
+    // and the new set rises in one after another (their image reveals finished, so nothing pops).
+    let run = 0;
+    const swap = async (change: () => void) => {
+      if (reduced) {
+        change();
+        finishReveals(list);
+        ScrollTrigger.refresh();
+        return;
+      }
+      const mine = ++run;
+      const before = shown();
+      gsap.killTweensOf([list, ...items]);
+      await gsap.to(before, { opacity: 0, y: 12, duration: 0.26, ease: 'power2.in', stagger: Math.min(0.018, 0.16 / before.length) }).then();
+      if (mine !== run) return;
+      const from = list.offsetHeight;
+      change();
+      finishReveals(list);
+      const to = list.offsetHeight;
+      const after = shown();
+      gsap.set(items, { clearProps: 'opacity,transform' });
+      gsap.fromTo(list, { height: from }, { height: to, duration: 0.6, ease: 'expo.inOut', clearProps: 'height', onComplete: () => ScrollTrigger.refresh() });
+      gsap.fromTo(after, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out', delay: 0.08, stagger: Math.min(0.06, 0.7 / after.length), clearProps: 'opacity,transform' });
+    };
+
+    const setFilter = (filter: string) => {
       items.forEach((item) => {
         item.hidden = !(filter === 'all' || (item.dataset.tags || '').split('|').includes(filter));
       });
+    };
+    const applyFilter = (filter: string, animate: boolean) => {
       filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
-      if (state) {
-        Flip.from(state, {
-          duration: 0.75,
-          ease: 'expo.inOut',
-          absolute: true,
-          onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'expo.out', delay: 0.15 }),
-          onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.92, duration: 0.3 }),
-          onComplete: () => ScrollTrigger.refresh(),
-        });
-      } else {
+      if (animate) swap(() => setFilter(filter));
+      else {
+        setFilter(filter);
         ScrollTrigger.refresh();
       }
       const url = new URL(location.href);
@@ -90,13 +111,12 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
     };
 
     const applyView = (view: string) => {
-      list.dataset.view = view;
+      if (list.dataset.view === view) return;
       viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
       try {
         sessionStorage.setItem('work:view', view);
       } catch {}
-      if (!reduced) gsap.fromTo(list, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' });
-      ScrollTrigger.refresh();
+      swap(() => (list.dataset.view = view));
     };
 
     filterBtns.forEach((b) => b.addEventListener('click', () => applyFilter(b.dataset.filter || 'all', true)));
@@ -112,25 +132,71 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
       }
     } catch {}
 
-    // list view: the hovered row's cover follows the pointer
+    // List view: the hovered project's cover sits right beside the pointer, tilted, and leans with
+    // the pointer's movement. Moving to another row swaps the picture with a short zoom-and-fade.
     const peek = document.querySelector<HTMLElement>('[data-peek]');
-    const peekImg = peek?.querySelector('img');
-    if (peek && peekImg && finePointer) {
-      const xTo = gsap.quickTo(peek, 'x', { duration: 0.55, ease: 'power3' });
-      const yTo = gsap.quickTo(peek, 'y', { duration: 0.55, ease: 'power3' });
+    const tilt = peek?.querySelector<HTMLElement>('[data-peek-tilt]');
+    const layers = [...(peek?.querySelectorAll<HTMLImageElement>('img') ?? [])];
+    if (peek && tilt && layers.length === 2 && finePointer) {
+      const xTo = gsap.quickTo(peek, 'x', { duration: reduced ? 0 : 0.32, ease: 'power3' });
+      const yTo = gsap.quickTo(peek, 'y', { duration: reduced ? 0 : 0.32, ease: 'power3' });
+      const lean = gsap.quickTo(tilt, 'rotation', { duration: 0.7, ease: 'power3' });
+      let front = 0;
+      let current = '';
+      let last = { x: 0, y: 0 };
+      let left = false;
+      const base = () => (left ? -7 : 7);
+      const settle = gsap.delayedCall(0.12, () => lean(base())).pause();
+      gsap.set(tilt, { rotation: 7 });
       list.addEventListener('pointermove', (e) => {
         xTo(e.clientX);
         yTo(e.clientY);
+        const card = peek.querySelector<HTMLElement>('.wk__peek-card');
+        const flip = e.clientX > innerWidth - (card?.offsetWidth ?? 280) - 110;
+        if (flip !== left) {
+          left = flip;
+          peek.classList.toggle('is-left', left);
+        }
+        if (!reduced) lean(gsap.utils.clamp(-16, 16, base() + (e.clientX - last.x) * 0.5));
+        last = { x: e.clientX, y: e.clientY };
+        settle.restart(true);
       });
-      items.forEach((item) => {
-        item.addEventListener('pointerenter', () => {
+      const show = (src: string, down: boolean) => {
+        if (!src || src === current) return;
+        current = src;
+        const next = layers[1 - front];
+        const prev = layers[front];
+        front = 1 - front;
+        next.src = src;
+        next.style.zIndex = '2';
+        prev.style.zIndex = '1';
+        if (reduced || !peek.classList.contains('is-on')) {
+          gsap.set(next, { opacity: 1, scale: 1, yPercent: 0 });
+          gsap.set(prev, { opacity: 0 });
+          return;
+        }
+        gsap.fromTo(next, { opacity: 0, scale: 1.18, yPercent: down ? 6 : -6 }, { opacity: 1, scale: 1, yPercent: 0, duration: 0.55, ease: 'expo.out' });
+        gsap.to(prev, { opacity: 0, scale: 0.94, duration: 0.45, ease: 'power2.out' });
+        lean(base() + (down ? 5 : -5));
+      };
+      let lastIndex = -1;
+      items.forEach((item, index) => {
+        item.addEventListener('pointerenter', (e) => {
           if (list.dataset.view !== 'list') return;
           const img = item.querySelector<HTMLImageElement>('img');
-          if (img) peekImg.src = img.currentSrc || img.src;
+          if (!peek.classList.contains('is-on')) {
+            gsap.set(peek, { x: e.clientX, y: e.clientY });
+            last = { x: e.clientX, y: e.clientY };
+          }
+          show(img ? img.currentSrc || img.src : '', index > lastIndex);
+          lastIndex = index;
           peek.classList.add('is-on');
         });
       });
-      list.addEventListener('pointerleave', () => peek.classList.remove('is-on'));
+      list.addEventListener('pointerleave', () => {
+        peek.classList.remove('is-on');
+        lastIndex = -1;
+      });
     }
   }
 </script>
@@ -196,7 +262,7 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
     gap: clamp(2rem, 3.6vw, 4rem) var(--gap);
   }
   /* a gentle stagger so the grid does not read as a spreadsheet */
-  .wk__list[data-view='grid'] .wk__item:nth-child(3n + 2) {
+  .wk__list[data-view='grid'] .wk__item:nth-child(3n + 2 of :not([hidden])) {
     margin-top: clamp(0rem, 3.5vw, 4rem);
   }
 
@@ -256,40 +322,63 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
     line-height: 1.02;
   }
 
+  /* list view: the hovered project's cover, beside the pointer (the script moves .wk__peek to the
+     pointer and leans .wk__peek-tilt; the card sits just clear of the cursor's label disc) */
   .wk__peek {
     position: fixed;
     top: 0;
     left: 0;
     z-index: 70;
-    width: clamp(14rem, 22vw, 22rem);
-    aspect-ratio: 4 / 5;
-    margin: -30% 0 0 2rem;
+    width: 0;
+    height: 0;
     pointer-events: none;
-    opacity: 0;
-    scale: 0.8;
-    rotate: 4deg;
-    transition:
-      opacity 0.35s,
-      scale 0.6s var(--ease-out);
   }
-  .wk__peek.is-on {
+  .wk__peek-tilt {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .wk__peek-card {
+    position: absolute;
+    top: 0;
+    left: 3.4rem;
+    width: clamp(12rem, 17vw, 18rem);
+    aspect-ratio: 4 / 5;
+    translate: 0 -50%;
+    box-shadow: 0 30px 70px rgb(0 0 0 / 0.5);
+    opacity: 0;
+    scale: 0.82;
+    transform-origin: 0% 50%;
+    transition:
+      opacity 0.3s,
+      scale 0.55s var(--ease-out);
+  }
+  .wk__peek.is-left .wk__peek-card {
+    left: auto;
+    right: 3.4rem;
+    transform-origin: 100% 50%;
+  }
+  .wk__peek.is-on .wk__peek-card {
     opacity: 1;
     scale: 1;
   }
-  .wk__peek img {
+  .wk__peek-card img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    opacity: 0;
   }
 
   @media (max-width: 1100px) {
     .wk__list[data-view='grid'] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .wk__list[data-view='grid'] .wk__item:nth-child(3n + 2) {
+    .wk__list[data-view='grid'] .wk__item:nth-child(3n + 2 of :not([hidden])) {
       margin-top: 0;
     }
-    .wk__list[data-view='grid'] .wk__item:nth-child(2n) {
+    .wk__list[data-view='grid'] .wk__item:nth-child(2n of :not([hidden])) {
       margin-top: clamp(0rem, 5vw, 3.5rem);
     }
   }
@@ -297,7 +386,7 @@ const count = (tag: string) => work.filter((p) => p.data.tags.includes(tag)).len
     .wk__list[data-view='grid'] {
       grid-template-columns: minmax(0, 1fr);
     }
-    .wk__list[data-view='grid'] .wk__item:nth-child(2n) {
+    .wk__list[data-view='grid'] .wk__item:nth-child(2n of :not([hidden])) {
       margin-top: 0;
     }
   }

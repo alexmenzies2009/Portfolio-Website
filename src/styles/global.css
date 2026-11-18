@@ -78,6 +78,8 @@ html {
   text-size-adjust: 100%;
   background: var(--bg);
   scrollbar-color: #3a3a3c var(--bg);
+  /* keep the scrollbar's space when scrolling is locked (intro, menu, viewer), so nothing jumps */
+  scrollbar-gutter: stable;
 }
 body {
   margin: 0;
@@ -340,14 +342,16 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
 
 /* underline that wipes in */
 .ulink {
-  background: linear-gradient(currentColor, currentColor) no-repeat 100% 100% / 0% 1px;
+  background: linear-gradient(currentColor, currentColor) no-repeat;
+  background-position: 100% var(--ul-y, 100%);
+  background-size: 0% var(--ul-w, 1px);
   transition: background-size 0.5s var(--ease-out);
   padding-bottom: 0.12em;
 }
 .ulink:hover,
 .ulink:focus-visible {
-  background-position: 0% 100%;
-  background-size: 100% 1px;
+  background-position: 0% var(--ul-y, 100%);
+  background-size: 100% var(--ul-w, 1px);
 }
 
 /* pill button with a label that rolls over on hover */
@@ -432,6 +436,33 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
   border-radius: 50%;
   background: var(--accent);
 }
+/* .pulse--cycle: the dot runs through the project palette, like the one on the home page */
+.pulse--cycle,
+.pulse--cycle::after {
+  animation-name: pulse-tint;
+  animation-duration: 9.6s;
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: infinite;
+}
+.pulse--cycle::after {
+  animation:
+    pulse 2.2s var(--ease-out) infinite,
+    pulse-tint 9.6s steps(1, end) infinite;
+}
+@keyframes pulse-tint {
+  0% {
+    background-color: var(--c-yellow);
+  }
+  25% {
+    background-color: var(--c-cyan);
+  }
+  50% {
+    background-color: var(--c-violet);
+  }
+  75% {
+    background-color: var(--c-red);
+  }
+}
 .pulse::after {
   content: '';
   position: absolute;
@@ -485,7 +516,17 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
   object-fit: cover;
 }
 
-/* ---------- custom cursor (fine pointers only; the system cursor stays) ---------- */
+/* ---------- custom cursor (mouse only; touch screens keep their own) ----------
+   A dot that follows the pointer exactly and a ring that trails it. Over links the ring grows;
+   over work it becomes a coloured disc with a label (View, Zoom...). Text fields and embeds get
+   the system cursor back. The system cursor is hidden only once the custom one is moving. */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+html.has-cursor :is(input, textarea, select, [contenteditable='true']) {
+  cursor: auto !important;
+}
 .cursor {
   position: fixed;
   top: 0;
@@ -500,25 +541,51 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
 .cursor.is-on {
   opacity: 1;
 }
-.cursor__disc {
+.cursor[data-state='text'] {
+  opacity: 0;
+}
+/* the script moves these two; what they look like is one level in */
+.cursor__ring,
+.cursor__dot {
   position: absolute;
   top: 0;
   left: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+.cursor__disc,
+.cursor__dot i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  translate: -50% -50%;
+}
+.cursor__disc {
+  --size: 2.1rem;
   display: grid;
   place-items: center;
-  width: 5.6rem;
-  height: 5.6rem;
-  margin: -2.8rem 0 0 -2.8rem;
-  border-radius: 50%;
-  background: var(--accent);
+  width: var(--size);
+  height: var(--size);
+  border: 1px solid rgb(237 234 228 / 0.42);
   color: var(--on-accent);
-  transform: scale(0);
   transition:
-    transform 0.5s var(--ease-out),
-    background-color 0.4s;
+    width 0.5s var(--ease-out),
+    height 0.5s var(--ease-out),
+    background-color 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out),
+    scale 0.35s var(--ease-out);
 }
-.cursor[data-state='label'] .cursor__disc {
-  transform: scale(1);
+.cursor__dot i {
+  width: 6px;
+  height: 6px;
+  background: var(--fg);
+  /* a thin dark edge keeps it visible on light images too */
+  box-shadow: 0 0 0 1.5px rgb(9 9 10 / 0.45);
+  transition:
+    scale 0.35s var(--ease-out),
+    opacity 0.2s;
 }
 .cursor__label {
   font-family: var(--font-mono);
@@ -527,6 +594,38 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 0.2s,
+    scale 0.45s var(--ease-out);
+}
+/* links and buttons: the ring opens up (in the link's own colour, if it has one) */
+.cursor[data-state='link'] .cursor__disc {
+  --size: 3.4rem;
+  border-color: var(--cursor-tint, rgb(237 234 228 / 0.75));
+  background: color-mix(in oklab, var(--cursor-tint, #edeae4) 10%, transparent);
+}
+.cursor[data-state='link'] .cursor__dot i {
+  scale: 0.5;
+}
+/* work: the ring becomes a disc in the work's colour, with a label */
+.cursor[data-state='label'] .cursor__disc {
+  --size: 5.6rem;
+  border-color: transparent;
+  background: var(--accent);
+}
+.cursor[data-state='label'] .cursor__dot i {
+  scale: 0;
+}
+.cursor[data-state='label'] .cursor__label {
+  opacity: 1;
+  scale: 1;
+  transition-delay: 0.08s;
+}
+.cursor.is-down .cursor__disc {
+  scale: 0.84;
 }
 @media not ((hover: hover) and (pointer: fine)) {
   .cursor {
@@ -785,7 +884,8 @@ html.theme-switching::view-transition-new(root) {
 }
 
 /* ---------- WebGL contour field (canvas[data-field]) ---------- */
-.field {
+/* canvas only: the contact form's own .field labels share the class name */
+canvas.field {
   position: absolute;
   inset: 0;
   z-index: -1; /* behind its section's content; the section sets isolation: isolate */
@@ -797,6 +897,6 @@ html.theme-switching::view-transition-new(root) {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 72%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 72%, transparent);
 }
-.field.is-live {
+canvas.field.is-live {
   opacity: 1;
 }

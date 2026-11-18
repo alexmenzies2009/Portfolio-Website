@@ -8,45 +8,70 @@ gsap.registerPlugin(ScrambleTextPlugin);
 const html = document.documentElement;
 const closest = (e: Event, sel: string) => (e.target instanceof Element ? e.target.closest<HTMLElement>(sel) : null);
 
-/* ---------- cursor: a labelled disc that appears over work ("View", "Zoom", "Play") ---------- */
+/* ---------- cursor: a dot and a trailing ring; links open the ring, work turns it into a labelled
+   disc ("View", "Zoom", "Play" from data-cursor). The system cursor is hidden only while the
+   custom one is on screen, and comes back in text fields and embeds. ---------- */
 export function initCursor() {
   const el = document.querySelector<HTMLElement>('.cursor');
   if (!el || !finePointer) return;
+  const ring = el.querySelector<HTMLElement>('.cursor__ring')!;
+  const dot = el.querySelector<HTMLElement>('.cursor__dot')!;
   const label = el.querySelector<HTMLElement>('.cursor__label');
-  const dur = reduced ? 0 : 0.5;
-  const xTo = gsap.quickTo(el, 'x', { duration: dur, ease: 'power3' });
-  const yTo = gsap.quickTo(el, 'y', { duration: dur, ease: 'power3' });
+  const ringX = gsap.quickTo(ring, 'x', { duration: reduced ? 0 : 0.42, ease: 'power3' });
+  const ringY = gsap.quickTo(ring, 'y', { duration: reduced ? 0 : 0.42, ease: 'power3' });
   let on = false;
   let last = { x: innerWidth / 2, y: innerHeight / 2 };
   try {
     const saved = JSON.parse(sessionStorage.getItem('cursor') || 'null');
     if (saved) last = saved;
   } catch {}
-  gsap.set(el, { x: last.x, y: last.y });
+  gsap.set([ring, dot], { x: last.x, y: last.y });
+
+  const show = (x: number, y: number) => {
+    gsap.set([ring, dot], { x, y });
+    el.classList.add('is-on');
+    html.classList.add('has-cursor');
+    on = true;
+  };
+  const hide = () => {
+    el.classList.remove('is-on', 'is-down');
+    html.classList.remove('has-cursor');
+    on = false;
+  };
   addEventListener(
     'pointermove',
     (e) => {
       if (e.pointerType !== 'mouse') return;
       last = { x: e.clientX, y: e.clientY };
-      if (!on) {
-        gsap.set(el, { x: e.clientX, y: e.clientY });
-        el.classList.add('is-on');
-        on = true;
-      }
-      xTo(e.clientX);
-      yTo(e.clientY);
+      if (!on) show(e.clientX, e.clientY);
+      gsap.set(dot, { x: e.clientX, y: e.clientY });
+      ringX(e.clientX);
+      ringY(e.clientY);
     },
     { passive: true },
   );
+
+  const stateOf = (t: Element | null): [string, HTMLElement | null] => {
+    if (!t) return ['', null];
+    if (t.closest('input, textarea, select, [contenteditable="true"], iframe')) return ['text', null];
+    const work = t.closest<HTMLElement>('[data-cursor]');
+    if (work) return ['label', work];
+    const link = t.closest<HTMLElement>('a, button, [role="button"], label, summary');
+    if (link) return ['link', link];
+    return ['', null];
+  };
   document.addEventListener('pointerover', (e) => {
-    const t = closest(e, '[data-cursor]');
-    if (t && label) label.textContent = t.dataset.cursor || '';
-    el.dataset.state = t ? 'label' : '';
+    const [state, target] = stateOf(e.target instanceof Element ? e.target : null);
+    if (state === 'label' && label && target) label.textContent = target.dataset.cursor || '';
+    const tint = state === 'link' && target ? getComputedStyle(target).getPropertyValue('--tint').trim() : '';
+    if (tint) el.style.setProperty('--cursor-tint', tint);
+    else el.style.removeProperty('--cursor-tint');
+    el.dataset.state = state;
   });
-  html.addEventListener('pointerleave', () => {
-    el.classList.remove('is-on');
-    on = false;
-  });
+  addEventListener('pointerdown', (e) => e.pointerType === 'mouse' && el.classList.add('is-down'));
+  addEventListener('pointerup', () => el.classList.remove('is-down'));
+  html.addEventListener('pointerleave', hide);
+  addEventListener('blur', hide);
   addEventListener('pagehide', () => {
     try {
       sessionStorage.setItem('cursor', JSON.stringify(last));

@@ -40,11 +40,12 @@ export const nav = [
 /** Page colour by path, for the label at the top of each page. */
 export const tintFor = (href: string) => nav.find((n) => n.href === href)?.tint;
 
+/** "brand" is each network's own colour, shown when its link is hovered. */
 export const socials = [
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/alex-menzies' },
-  { label: 'Instagram', href: 'https://www.instagram.com/mnzsalex/' },
-  { label: 'Facebook', href: 'https://www.facebook.com/alex.menzies.965/' },
-  { label: 'Behance', href: 'https://www.behance.net/alexmenzies1' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/alex-menzies', brand: '#0A66C2' },
+  { label: 'Instagram', href: 'https://www.instagram.com/mnzsalex/', brand: '#FF0069' },
+  { label: 'Facebook', href: 'https://www.facebook.com/alex.menzies.965/', brand: '#0866FF' },
+  { label: 'Behance', href: 'https://www.behance.net/alexmenzies1', brand: '#1769FF' },
 ];
 
 export const services: { name: string; image: ImageMetadata }[] = [
@@ -78,20 +79,29 @@ export const about = {
 };
 
 /** The tools on /stack. "symbol" is the two letters shown big on the tile. */
+/** Tools on /stack. "icon" is a file name in src/assets/stack (monochrome versions of the open logo
+ * sets gilbarbara/logos, Devicon and Simple Icons; the coloured versions shown on hover are in
+ * src/assets/stack/color); "brand" is the tool's own colour, used for its arrow (leave it empty for
+ * logos that are black or white). */
 export const stack = [
-  { symbol: 'Cc', name: 'Adobe', label: 'Design', href: 'https://www.adobe.com/products/catalog.html#category=creativity-design' },
-  { symbol: 'Go', name: 'Google', label: 'Search', href: 'https://google.com' },
-  { symbol: 'Ca', name: 'Canva', label: 'Design', href: '' },
-  { symbol: 'Ai', name: 'Illustrator', label: 'Design', href: '' },
-  { symbol: 'Ps', name: 'Photoshop', label: 'Images', href: '' },
-  { symbol: 'Id', name: 'InDesign', label: 'Folders', href: '' },
-  { symbol: 'Pr', name: 'Premiere Pro', label: 'Video', href: '' },
-  { symbol: 'Ae', name: 'After Effects', label: 'Animation', href: '' },
-  { symbol: 'Dr', name: 'Drive', label: 'File storage', href: '' },
-  { symbol: 'iC', name: 'iCloud', label: 'File storage', href: '' },
-  { symbol: 'Ap', name: 'Apple', label: 'System', href: 'https://www.apple.com' },
-  { symbol: 'Sp', name: 'Spotify', label: 'Music', href: 'https://www.spotify.com/' },
-  { symbol: 'No', name: 'Notion', label: 'Organization', href: '' },
+  { icon: 'adobe', name: 'Adobe', label: 'Design', brand: '#FA0F00', href: 'https://www.adobe.com/products/catalog.html#category=creativity-design' },
+  { icon: 'google', name: 'Google', label: 'Search', brand: '#4285F4', href: 'https://google.com' },
+  { icon: 'illustrator', name: 'Illustrator', label: 'Design', brand: '#FF9A00', href: '' },
+  { icon: 'photoshop', name: 'Photoshop', label: 'Images', brand: '#31A8FF', href: '' },
+  { icon: 'indesign', name: 'InDesign', label: 'Folders', brand: '#FF3366', href: '' },
+  { icon: 'premiere', name: 'Premiere Pro', label: 'Video', brand: '#EA77FF', href: '' },
+  { icon: 'after-effects', name: 'After Effects', label: 'Animation', brand: '#9999FF', href: '' },
+  { icon: 'canva', name: 'Canva', label: 'Design', brand: '#00C4CC', href: '' },
+  { icon: 'claude', name: 'Claude', label: 'AI', brand: '#D97757', href: 'https://claude.ai' },
+  { icon: 'gemini', name: 'Gemini', label: 'AI', brand: '#8E75B2', href: 'https://gemini.google.com' },
+  { icon: 'chatgpt', name: 'ChatGPT', label: 'AI', brand: '#10A37F', href: 'https://chatgpt.com' },
+  { icon: 'drive', name: 'Drive', label: 'File storage', brand: '#34A853', href: '' },
+  { icon: 'icloud', name: 'iCloud', label: 'File storage', brand: '#3693F3', href: '' },
+  { icon: 'apple', name: 'Apple', label: 'System', brand: '', href: 'https://www.apple.com' },
+  { icon: 'spotify', name: 'Spotify', label: 'Music', brand: '#1ED760', href: 'https://www.spotify.com/' },
+  { icon: 'notion', name: 'Notion', label: 'Organization', brand: '', href: '' },
+  { icon: 'teams', name: 'Teams', label: 'Meetings', brand: '#7B83EB', href: '' },
+  { icon: 'playstation', name: 'PlayStation', label: 'Gaming', brand: '#2E86F0', href: '' },
 ];
 
 /** AI explorations on /playground. Images live in src/assets/playground. */

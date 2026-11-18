@@ -173,8 +173,12 @@ export type Mosaic = {
   progress(): { in: number; out: number };
 };
 
-export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Promise<Mosaic | null> {
-  const canvas = document.querySelector<HTMLCanvasElement>('canvas[data-mosaic]');
+/** Draws the portrait (or, with portrait: false, only the drifting particles around it) into a canvas. */
+export async function initMosaic({
+  hover = true,
+  portrait: withPortrait = true,
+  canvas = document.querySelector<HTMLCanvasElement>('canvas[data-mosaic]'),
+}: { hover?: boolean; portrait?: boolean; canvas?: HTMLCanvasElement | null } = {}): Promise<Mosaic | null> {
   if (!canvas) return null;
   const gl = canvas.getContext('webgl2', { antialias: false, alpha: true, premultipliedAlpha: false });
   if (!gl) return null;
@@ -204,7 +208,8 @@ export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Pr
   gl.useProgram(program);
 
   // one point per portrait cell, followed by the background particles
-  const n = map.points.length / 3;
+  const n = withPortrait ? map.points.length / 3 : 0;
+  if (!withPortrait) hover = false;
   const DUST = 1600;
   const STRIDE = 7;
   const data = new Float32Array((n + DUST) * STRIDE);
@@ -262,6 +267,8 @@ export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Pr
   gl.uniform1f(u('uHomeCell'), 1 / half);
 
   let width = 1, height = 1, dpr = 1, portrait = 1, offsetY = -0.04;
+  // resizing a canvas wipes it: draw again straight away, so a blank frame is never shown
+  let redraw: (() => void) | null = null;
   const resize = () => {
     dpr = Math.min(devicePixelRatio || 1, 1.5);
     width = Math.max(1, Math.round(canvas.clientWidth * dpr));
@@ -273,6 +280,7 @@ export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Pr
     portrait = Math.min(1, (width / height) * 1.05);
     // on a computer screen the head moves up into the empty space above the wordmark
     offsetY = width / height > 1.2 ? 0.17 : -0.04;
+    redraw?.();
   };
   resize();
   new ResizeObserver(resize).observe(canvas);
@@ -367,7 +375,7 @@ export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Pr
   }
 
   canvas.classList.add('is-live');
-  gsap.ticker.add((time) => {
+  const draw = (time: number) => {
     if (!visible || document.hidden) return;
     // the opening follows the pointer at an unhurried pace, so a quick sweep of the mouse
     // does not race through every project
@@ -408,9 +416,12 @@ export async function initMosaic({ hover = true }: { hover?: boolean } = {}): Pr
     gl.uniform1f(uScale, SCALE * portrait);
     gl.uniform1f(uCell, (2 * SCALE * portrait) / Math.max(map.cols, map.rows));
     // tile size: one portrait cell, in device pixels
-    gl.uniform1f(uSize, ((height * SCALE * portrait) / Math.max(map.cols, map.rows)) * 1.02);
+    const sizeRef = withPortrait ? height : Math.max(height, innerHeight * dpr);
+    gl.uniform1f(uSize, ((sizeRef * SCALE * portrait) / Math.max(map.cols, map.rows)) * 1.02);
     gl.drawArrays(gl.POINTS, 0, n + DUST);
-  });
+  };
+  gsap.ticker.add(draw);
+  redraw = () => draw(gsap.ticker.time);
 
   const projectOfCell = (i: number) => map.projects[map.tiles[data[i * STRIDE + 3]]] ?? null;
   return {

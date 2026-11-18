@@ -15,7 +15,7 @@ const { eyebrow, lines, count, max = 34, tint } = Astro.props;
 ---
 
 <section class="phero wrap">
-  <canvas class="field" data-field aria-hidden="true"></canvas>
+  <canvas class="phero__dust" data-dust data-map="/mosaic/map.json" data-atlas="/mosaic/atlas.webp" aria-hidden="true"></canvas>
   <p class="eyebrow mono" data-reveal data-delay="0.55" style={tint ? `--tint: ${tint}` : undefined}>
     <span class="eyebrow__rule"></span>
     <span>{eyebrow}</span>
@@ -28,6 +28,11 @@ const { eyebrow, lines, count, max = 34, tint } = Astro.props;
           <span data-fit-text data-split="chars" data-delay={0.22 + i * 0.12}>
             {line}
           </span>
+          {i === 0 && Astro.slots.has('aside') && (
+            <span class="phero__aside">
+              <slot name="aside" />
+            </span>
+          )}
         </span>
       ))
     }
@@ -44,6 +49,22 @@ const { eyebrow, lines, count, max = 34, tint } = Astro.props;
     gap: clamp(1.1rem, 2.4vw, 2.25rem);
     padding-top: calc(var(--header-h) + clamp(2rem, 8vh, 6rem));
   }
+  /* the same drifting particles as around the portrait on the home page */
+  .phero__dust {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.6s var(--ease-out);
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  }
+  .phero__dust:global(.is-live) {
+    opacity: 1;
+  }
   .phero__count {
     color: var(--tint, var(--fg));
   }
@@ -54,11 +75,21 @@ const { eyebrow, lines, count, max = 34, tint } = Astro.props;
     font-size: var(--fs-display);
   }
   .phero__line {
+    position: relative;
     display: block;
     line-height: 0.84;
     white-space: nowrap;
   }
   .phero__line > span {
     display: inline-block;
+  }
+  /* something placed at the end of the first line, as tall as the line (the about page's portrait) */
+  .phero__aside {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
   }
 </style>

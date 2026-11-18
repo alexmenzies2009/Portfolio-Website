@@ -3,8 +3,20 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Arrow from '../components/Arrow.astro';
 import { site, socials, contactForm, tintFor } from '../data/site';
+import { palette } from '../lib/palette';
 
 const netlify = contactForm.provider === 'netlify';
+// the choices in the form; each service lights up in its colour from the project palette
+const services = [
+  { label: 'Branding', tint: palette.cyan },
+  { label: 'Web design', tint: palette.red },
+  { label: 'UI/UX', tint: palette.violet },
+  { label: 'Illustration', tint: palette.yellow },
+  { label: 'Print', tint: palette.pink },
+  { label: 'Motion', tint: palette.orange },
+  { label: 'Something else', tint: palette.green },
+];
+
 ---
 
 <Base title="Contact" description={site.contactIntro}>
@@ -30,7 +42,7 @@ const netlify = contactForm.provider === 'netlify';
             <div>
               <dt class="mono">Status</dt>
               <dd class="ct__status-row">
-                <span class="pulse" aria-hidden="true" />
+                <span class="pulse pulse--cycle" aria-hidden="true" />
                 Available for work
               </dd>
             </div>
@@ -43,7 +55,7 @@ const netlify = contactForm.provider === 'netlify';
               {
                 socials.map((s) => (
                   <li>
-                    <a class="ulink" href={s.href} target="_blank" rel="noopener">
+                    <a class="ulink" href={s.href} target="_blank" rel="noopener" style={`--tint: ${s.brand}`}>
                       {s.label}
                     </a>
                   </li>
@@ -80,8 +92,21 @@ const netlify = contactForm.provider === 'netlify';
         <span class="field__label mono">02 — Email</span>
         <input class="field__input" type="email" name="email" autocomplete="email" required />
       </label>
+      <fieldset class="field choices">
+        <legend class="field__label mono">03 — What can I help with?</legend>
+        <div class="choices__list">
+          {
+            services.map((s) => (
+              <label class="choice" style={`--tint: ${s.tint}`}>
+                <input type="checkbox" name="services" value={s.label} />
+                <span>{s.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
       <label class="field">
-        <span class="field__label mono">03 — Message</span>
+        <span class="field__label mono">04 — Tell me about the project</span>
         <textarea class="field__input" name="message" rows="4" required></textarea>
       </label>
       <p class="ct__trap" aria-hidden="true">
@@ -113,6 +138,9 @@ const netlify = contactForm.provider === 'netlify';
       if (data.get('bot-field')) return; // filled in by a bot
       data.delete('bot-field');
       data.delete('form-name');
+      const picked = data.getAll('services');
+      data.delete('services');
+      if (picked.length) data.set('services', picked.join(', '));
       const { provider, endpoint } = form.dataset;
       if (provider === 'off' || (provider === 'endpoint' && !endpoint)) {
         say('error', 'This form is not connected to an inbox yet. Please reach me through one of the links on this page.');
@@ -202,6 +230,15 @@ const netlify = contactForm.provider === 'netlify';
     flex-wrap: wrap;
     gap: 0.35rem 1.25rem;
   }
+  .ct__socials a {
+    transition:
+      color 0.35s var(--ease-out),
+      background-size 0.5s var(--ease-out);
+  }
+  .ct__socials a:hover,
+  .ct__socials a:focus-visible {
+    color: var(--tint, var(--fg));
+  }
 
   .ct__form {
     grid-column: 7 / -1;
@@ -249,6 +286,70 @@ const netlify = contactForm.provider === 'netlify';
   }
   textarea.field__input {
     min-height: 5.5em;
+  }
+  /* tap-to-pick chips */
+  .choices {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .choices legend {
+    margin-bottom: 0.9rem;
+    padding: 0;
+  }
+  .choices__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .choice {
+    position: relative;
+  }
+  .choice input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+  }
+  .choice span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    padding: 0.7em 1.1em;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition:
+      background-color 0.35s var(--ease-out),
+      border-color 0.35s var(--ease-out),
+      color 0.35s var(--ease-out);
+  }
+  /* a small dot in the service's colour */
+  .choice[style] span::before {
+    content: '';
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--tint);
+    transition: background-color 0.35s var(--ease-out);
+  }
+  .choice:hover span {
+    border-color: var(--fg-2);
+  }
+  .choice input:focus-visible + span {
+    outline: 1px solid var(--fg);
+    outline-offset: 3px;
+  }
+  .choice input:checked + span {
+    background: var(--tint, var(--fg));
+    border-color: transparent;
+    color: var(--ink);
+  }
+  .choice input:checked + span::before {
+    background: var(--ink);
   }
   .ct__trap {
     position: absolute;

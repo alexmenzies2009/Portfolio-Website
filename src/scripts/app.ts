@@ -4,6 +4,10 @@ import { initCursor, initAccent, initClock, initRotators, initMenu, initLightbox
 import { initWordmark } from './wordmark';
 import { runLoader } from './loader';
 import { initFields } from './field';
+import { initMosaic } from './mosaic';
+
+// the inner pages' headers: the home page's drifting particles, without the portrait
+document.querySelectorAll<HTMLCanvasElement>('canvas[data-dust]').forEach((canvas) => initMosaic({ canvas, portrait: false }));
 
 initSmoothScroll();
 initCursor();

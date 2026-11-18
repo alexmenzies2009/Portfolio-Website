@@ -176,7 +176,7 @@ const share = image ? (await getImage({ src: image, width: 1200, height: 630, fi
       <slot />
     </main>
     <Footer />
-    <div class="cursor" aria-hidden="true"><div class="cursor__disc"><span class="cursor__label"></span></div></div>
+    <div class="cursor" aria-hidden="true"><div class="cursor__ring"><div class="cursor__disc"><span class="cursor__label"></span></div></div><div class="cursor__dot"><i></i></div></div>
     <div id="page-end"></div>
     <script>
       import '../scripts/app.ts';

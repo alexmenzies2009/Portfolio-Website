@@ -82,6 +82,8 @@ export function initFields() {
     let width = 0;
     let height = 0;
     let scale = 1;
+    // resizing a canvas wipes it: draw again straight away, so a blank frame is never shown
+    let redraw: (() => void) | null = null;
     const resize = () => {
       // the map is soft by nature, so it is drawn at no more than 1x and scaled up: cheap on any GPU
       scale = Math.min(1, 1500 / Math.max(1, canvas.clientWidth));
@@ -90,6 +92,7 @@ export function initFields() {
       canvas.width = width;
       canvas.height = height;
       gl.viewport(0, 0, width, height);
+      redraw?.();
     };
     resize();
     new ResizeObserver(resize).observe(canvas);
@@ -115,7 +118,7 @@ export function initFields() {
     let colours = { bg: [0.035, 0.035, 0.04], fg: [0.93, 0.92, 0.89], ac: [0.93, 0.92, 0.89] } as Record<string, [number, number, number]>;
     let frame = 0;
     canvas.classList.add('is-live');
-    gsap.ticker.add((time) => {
+    const draw = (time: number) => {
       if (!visible || document.hidden) return;
       if (frame++ % 8 === 0) {
         const css = getComputedStyle(canvas);
@@ -140,6 +143,8 @@ export function initFields() {
       gl.uniform3fv(uFg, colours.fg);
       gl.uniform3fv(uAc, colours.ac);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    });
+    };
+    gsap.ticker.add(draw);
+    redraw = () => draw(gsap.ticker.time);
   });
 }

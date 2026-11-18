@@ -148,8 +148,12 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
     <span class="nx__title display" data-fit data-fit-max="26">
       <span data-fit-text>{next.data.title}</span>
     </span>
-    <span class="nx__thumb" data-cover={next.id}>
-      <Image src={next.data.cover} alt="" widths={[480, 800, 1200]} sizes="(min-width: 900px) 26vw, 60vw" quality={76} loading="lazy" />
+    <span class="nx__follow" data-nx-follow>
+      <span class="nx__lean" data-nx-lean>
+        <span class="nx__thumb" data-cover={next.id}>
+          <Image src={next.data.cover} alt="" widths={[480, 800, 1200]} sizes="(min-width: 900px) 22vw, 60vw" quality={76} loading="lazy" />
+        </span>
+      </span>
     </span>
   </a>
 
@@ -160,7 +164,7 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
 </Base>
 
 <script>
-  import { gsap, reduced } from '../../scripts/motion';
+  import { gsap, reduced, finePointer } from '../../scripts/motion';
 
   // the cover starts slightly inset and opens up as it scrolls into place. Only when it starts
   // below the fold: one already on screen (it may just have travelled here from a card) stays put.
@@ -168,6 +172,47 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
   if (cover && !reduced && cover.getBoundingClientRect().top > innerHeight * 0.9) {
     gsap.fromTo(cover, { scale: 0.9 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: cover, start: 'top 95%', end: 'top 12%', scrub: 0.5 } });
   }
+  // next project: its cover comes out of the block and follows the pointer, just beside the cursor,
+  // in front of everything; it leans with the pointer's movement
+  const nx = document.querySelector<HTMLElement>('[data-next-project]');
+  const follow = nx?.querySelector<HTMLElement>('[data-nx-follow]');
+  const leanEl = nx?.querySelector<HTMLElement>('[data-nx-lean]');
+  if (nx && follow && leanEl && finePointer) {
+    const xTo = gsap.quickTo(follow, 'x', { duration: reduced ? 0 : 0.38, ease: 'power3' });
+    const yTo = gsap.quickTo(follow, 'y', { duration: reduced ? 0 : 0.38, ease: 'power3' });
+    const lean = gsap.quickTo(leanEl, 'rotation', { duration: 0.7, ease: 'power3' });
+    let lastX = 0;
+    let left = false;
+    const base = () => (left ? 6 : -6);
+    const settle = gsap.delayedCall(0.12, () => lean(base())).pause();
+    gsap.set(leanEl, { rotation: -6 });
+    const place = (x: number, y: number) => {
+      const flip = x > innerWidth - follow.querySelector<HTMLElement>('.nx__thumb')!.offsetWidth - 110;
+      if (flip !== left) {
+        left = flip;
+        follow.classList.toggle('is-left', left);
+      }
+    };
+    nx.addEventListener('pointerenter', (e) => {
+      gsap.set(follow, { x: e.clientX, y: e.clientY });
+      lastX = e.clientX;
+      place(e.clientX, e.clientY);
+    });
+    nx.addEventListener('pointermove', (e) => {
+      xTo(e.clientX);
+      yTo(e.clientY);
+      place(e.clientX, e.clientY);
+      if (!reduced) lean(gsap.utils.clamp(-16, 16, base() + (e.clientX - lastX) * 0.5));
+      lastX = e.clientX;
+      settle.restart(true);
+    });
+    // keyboard focus: show it at the right of the block
+    nx.addEventListener('focus', () => {
+      const r = nx.getBoundingClientRect();
+      gsap.set(follow, { x: r.right - r.width * 0.35, y: r.top + r.height / 2 });
+    });
+  }
+
   // left / right arrow keys step through the projects
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey || document.querySelector('dialog[open]') || document.documentElement.classList.contains('menu-open')) return;
@@ -335,29 +380,48 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
   .nx:focus-visible .nx__title {
     color: var(--card-accent, var(--fg));
   }
+  /* the cover floats in front of the page beside the pointer (the script moves .nx__follow and
+     leans .nx__lean; the picture sits just clear of the cursor's "Next" disc) */
+  .nx__follow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 70;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .nx__lean {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
   .nx__thumb {
     position: absolute;
-    right: calc(var(--gutter) + 6vw);
-    top: 50%;
-    width: clamp(10rem, 20vw, 21rem);
+    top: 0;
+    left: 3.4rem;
+    width: clamp(11rem, 17vw, 18rem);
     aspect-ratio: 4 / 5;
     overflow: clip;
     border-radius: var(--radius);
-    translate: 0 -42%;
-    rotate: 5deg;
-    scale: 0.6;
+    box-shadow: 0 30px 70px rgb(0 0 0 / 0.5);
+    translate: 0 -50%;
+    transform-origin: 0% 50%;
+    scale: 0.7;
     opacity: 0;
-    pointer-events: none;
     transition:
-      opacity 0.4s,
-      scale 0.7s var(--ease-out),
-      rotate 0.7s var(--ease-out);
+      opacity 0.35s,
+      scale 0.6s var(--ease-out);
+  }
+  .nx__follow.is-left .nx__thumb {
+    left: auto;
+    right: 3.4rem;
+    transform-origin: 100% 50%;
   }
   .nx:hover .nx__thumb,
   .nx:focus-visible .nx__thumb {
     opacity: 1;
     scale: 1;
-    rotate: -3deg;
   }
   .nx__thumb :global(img) {
     width: 100%;
@@ -384,6 +448,11 @@ const box = (img: ImageMetadata) => `--ar:${(img.width / img.height).toFixed(4)}
       grid-template-columns: minmax(0, 1fr);
     }
     .nx__thumb {
+      display: none;
+    }
+  }
+  @media not ((hover: hover) and (pointer: fine)) {
+    .nx__follow {
       display: none;
     }
   }

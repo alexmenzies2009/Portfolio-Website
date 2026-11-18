@@ -54,6 +54,16 @@ function revealColor(el: HTMLElement) {
   return getComputedStyle(document.documentElement).getPropertyValue(PALETTE[nextColor++ % PALETTE.length]).trim();
 }
 
+/** Finishes every media reveal inside `root` at once (for content shuffled in place, like the work filter). */
+export function finishReveals(root: ParentNode) {
+  reveals.forEach((tl, el) => {
+    if (!root.contains(el)) return;
+    tl.scrollTrigger?.kill();
+    tl.progress(1);
+    reveals.delete(el);
+  });
+}
+
 export function initReveals(root: ParentNode = document) {
   if (reduced) return;
 
@@ -183,10 +193,17 @@ export function initMarquees() {
       el.addEventListener('pointerenter', () => (holdTarget = 0.12));
       el.addEventListener('pointerleave', () => (holdTarget = 1));
     }
+    // scrolling nudges the strip along, gently and never past a limit; touch scrolling (with its
+    // momentum) reports far larger speeds than a mouse wheel, so it counts for much less
+    const touch = !finePointer;
+    const gain = touch ? 0.08 : 0.35;
+    const most = touch ? 1.6 : 9;
+    let lastY = scrollY;
     gsap.ticker.add((_t, dt) => {
       if (!visible || !half) return;
-      const v = lenis ? lenis.velocity : 0;
-      boost += (v * 0.45 - boost) * 0.1;
+      const v = lenis ? lenis.velocity : scrollY - lastY;
+      lastY = scrollY;
+      boost += (gsap.utils.clamp(-most, most, v * gain) - boost) * 0.1;
       hold += (holdTarget - hold) * 0.08;
       x += dir * (base + Math.abs(boost)) * hold * (dt / 16.67);
       if (x <= -half) x += half;
