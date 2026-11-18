@@ -326,10 +326,15 @@ export function initEmerge(mosaic: Mosaic, info: Record<string, Info>) {
   pump();
 
   // the cards fade as the portrait is scrolled away
+  let lastOpacity = '';
   gsap.ticker.add(() => {
     const out = mosaic.progress().out;
-    layer.style.opacity = String(Math.max(0, 1 - out * 3));
-    layer.style.visibility = out > 0.33 ? 'hidden' : '';
+    const opacity = Math.max(0, 1 - out * 3).toFixed(3);
+    if (opacity !== lastOpacity) {
+      lastOpacity = opacity;
+      layer.style.opacity = opacity;
+      layer.style.visibility = out > 0.33 ? 'hidden' : '';
+    }
   });
 
   // after a resize the cards would sit in the wrong places: send them home

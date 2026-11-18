@@ -1,6 +1,6 @@
 // Runs on every page.
 import { initSmoothScroll, initReveals, initMarquees, initMagnetic, initTilt, initCounters, initFit, ScrollTrigger } from './motion';
-import { initCursor, initAccent, initClock, initRotators, initMenu, initLightbox, initImages, initTheme, initScramble } from './ui';
+import { initCursor, initAccent, initClock, initRotators, initMenu, initLightbox, initImages, initTheme, initScramble, initPulseColours } from './ui';
 import { initWordmark } from './wordmark';
 import { runLoader } from './loader';
 import { initFields } from './field';
@@ -29,6 +29,7 @@ runLoader(() => {
   initTilt();
   initCounters();
   initRotators();
+  initPulseColours();
   initImages();
   // start states are set: show the page
   document.documentElement.classList.add('is-ready');

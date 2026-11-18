@@ -210,7 +210,8 @@ export async function initMosaic({
   // one point per portrait cell, followed by the background particles
   const n = withPortrait ? map.points.length / 3 : 0;
   if (!withPortrait) hover = false;
-  const DUST = 1600;
+  // the drifting particles around the portrait: a phone's small screen gets far fewer
+  const DUST = innerWidth < 700 ? 450 : 1600;
   const STRIDE = 7;
   const data = new Float32Array((n + DUST) * STRIDE);
   const half = Math.max(map.cols, map.rows) / 2;

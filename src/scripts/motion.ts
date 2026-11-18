@@ -198,18 +198,31 @@ export function initMarquees() {
     const touch = !finePointer;
     const gain = touch ? 0.08 : 0.35;
     const most = touch ? 1.6 : 9;
+    // scroll speed without smooth scrolling: measured in the scroll event (reading the position in
+    // the animation frame, after other elements have changed, would force a full layout every frame)
     let lastY = scrollY;
+    let nativeV = 0;
+    if (!lenis) {
+      addEventListener(
+        'scroll',
+        () => {
+          nativeV = scrollY - lastY;
+          lastY = scrollY;
+        },
+        { passive: true },
+      );
+    }
     gsap.ticker.add((_t, dt) => {
       if (!visible || !half) return;
-      const v = lenis ? lenis.velocity : scrollY - lastY;
-      lastY = scrollY;
+      const v = lenis ? lenis.velocity : nativeV;
+      nativeV *= 0.85;
       boost += (gsap.utils.clamp(-most, most, v * gain) - boost) * 0.1;
       hold += (holdTarget - hold) * 0.08;
       x += dir * (base + Math.abs(boost)) * hold * (dt / 16.67);
       if (x <= -half) x += half;
       if (x > 0) x -= half;
-      track.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`;
-      track.style.setProperty('--skew', `${gsap.utils.clamp(-7, 7, boost * 0.35).toFixed(2)}deg`);
+      // one transform on the track only (a CSS variable here would restyle every card each frame)
+      track.style.transform = `translate3d(${x.toFixed(2)}px,0,0) skewX(${gsap.utils.clamp(-7, 7, boost * 0.35).toFixed(2)}deg)`;
     });
   });
 }

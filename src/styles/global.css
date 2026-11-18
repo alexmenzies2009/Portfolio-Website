@@ -436,32 +436,12 @@ html.js:not(.is-ready) [data-reveal]:not([data-reveal-done]) {
   border-radius: 50%;
   background: var(--accent);
 }
-/* .pulse--cycle: the dot runs through the project palette, like the one on the home page */
+/* .pulse--cycle: the dot runs through the project palette, like the one on the home page
+   (ui.ts sets --pulse-c every few seconds; a CSS colour animation would restyle it every frame) */
 .pulse--cycle,
 .pulse--cycle::after {
-  animation-name: pulse-tint;
-  animation-duration: 9.6s;
-  animation-timing-function: steps(1, end);
-  animation-iteration-count: infinite;
-}
-.pulse--cycle::after {
-  animation:
-    pulse 2.2s var(--ease-out) infinite,
-    pulse-tint 9.6s steps(1, end) infinite;
-}
-@keyframes pulse-tint {
-  0% {
-    background-color: var(--c-yellow);
-  }
-  25% {
-    background-color: var(--c-cyan);
-  }
-  50% {
-    background-color: var(--c-violet);
-  }
-  75% {
-    background-color: var(--c-red);
-  }
+  background-color: var(--pulse-c, var(--c-yellow));
+  transition: background-color 0.6s var(--ease-out);
 }
 .pulse::after {
   content: '';

@@ -219,6 +219,19 @@ export function initRotators() {
   });
 }
 
+/* ---------- "available" dots that run through the project palette (.pulse--cycle) ---------- */
+export function initPulseColours() {
+  const dots = [...document.querySelectorAll<HTMLElement>('.pulse--cycle')];
+  if (!dots.length) return;
+  const colours = ['var(--c-yellow)', 'var(--c-cyan)', 'var(--c-violet)', 'var(--c-red)'];
+  let i = 0;
+  setInterval(() => {
+    if (document.hidden) return;
+    i = (i + 1) % colours.length;
+    dots.forEach((d) => d.style.setProperty('--pulse-c', colours[i]));
+  }, 2400);
+}
+
 /* ---------- full-screen menu ---------- */
 export function initMenu() {
   const menu = document.getElementById('menu');
